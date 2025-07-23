@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"runtime"
+	"runtime/debug"
 
 	"github.com/soderluk/nirimgr/config"
 	"github.com/spf13/cobra"
@@ -24,13 +25,16 @@ func init() {
 
 // buildInfo returns the build information about nirimgr
 func buildInfo() string {
-	info := config.Version
-	info += fmt.Sprintf(" (%s %s %s %s)",
+	info := fmt.Sprintf("\nVersion:\t%s\nCommit:\t%s\nGo Version:\t%s\nBuild Date:\t%s\nBuild info: \n",
+		config.Version,
+		config.CommitSHA,
 		runtime.Version(),
-		runtime.GOARCH,
-		runtime.GOOS,
 		config.Date,
 	)
+	bi, _ := debug.ReadBuildInfo()
+	for _, setting := range bi.Settings {
+		info += fmt.Sprintf("%s:\t%s\n", setting.Key, setting.Value)
+	}
 
 	return info
 }

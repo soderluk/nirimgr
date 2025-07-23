@@ -20,6 +20,8 @@ var (
 	Version string = "git"
 	// Date is the date when nirimgr was built
 	Date string = time.Now().Format("2006-01-02")
+	// CommitSHA contains the build commit SHA hash.
+	CommitSHA string = "000"
 	// Config contains all configurations
 	Config *models.Config
 )

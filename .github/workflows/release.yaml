@@ -1,4 +1,4 @@
-name: "Release nirimgr"
+name: Release pipeline
 on:
   push:
     branches:
@@ -7,6 +7,10 @@ on:
     branches:
       - "main"
 jobs:
+  lint:
+    uses: soderluk/nirimgr/.github/workflows/lint.yaml
+  test:
+    uses: soderluk/nirimgr/.github/workflows/test.yaml
   release:
     runs-on: ubuntu-latest
     needs: test

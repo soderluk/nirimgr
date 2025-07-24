@@ -29,7 +29,7 @@ func buildInfo() string {
 		config.Version,
 		config.CommitSHA,
 		runtime.Version(),
-		config.Date,
+		config.BuildDate,
 	)
 	bi, _ := debug.ReadBuildInfo()
 	for _, setting := range bi.Settings {

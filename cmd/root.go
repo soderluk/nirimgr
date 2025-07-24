@@ -43,7 +43,7 @@ var rootCmd = &cobra.Command{
 		when the window opens the first time, niri's own window-rule might not pick up on it.
 		This command can handle the actions to be done for such cases. E.g. set a window to
 		floating, when the app id and title of the window matches a rule.
-		There is also a "scratchpad" command that can be run on a keybind.`,
+		There is also a "scratchpad" command that can be run on a key-bind.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

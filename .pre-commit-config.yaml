@@ -86,32 +86,31 @@ repos:
       #
       # Go Build
       #
-      - id: go-build-repo-pkg
+      - id: go-build-mod
       #
       # Go Mod Tidy
       #
-      - id: go-mod-tidy-repo
+      - id: go-mod-tidy
       #
       # Go Test
       #
-      - id: go-test-repo-pkg
+      - id: go-test-mod
       #
       # Go Vet
       #
-      - id: go-vet-repo-pkg
+      - id: go-vet-mod
       #
       # GoSec
       #
-      - id: go-sec-repo-pkg
+      - id: go-sec-mod
       #
       # StaticCheck
       #
-      - id: go-staticcheck-repo-pkg
+      - id: go-staticcheck-mod
       #
       # Formatters
       #
       - id: go-fmt
-      - id: go-fmt-repo
       #
       # Style Checkers
       #
@@ -123,4 +122,4 @@ repos:
       # - Supports repo config file for configuration
       # - https://github.com/golangci/golangci-lint
       #
-      - id: golangci-lint-repo-pkg
+      - id: golangci-lint-mod

@@ -10,18 +10,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/soderluk/nirimgr/models"
 )
 
 var (
 	// Version contains the current version of nirimgr
-	Version string = "git"
-	// Date is the date when nirimgr was built
-	Date string = time.Now().Format("2006-01-02")
+	Version string = "dev"
+	// BuildDate is the date when nirimgr was built
+	BuildDate string = "unknown"
 	// CommitSHA contains the build commit SHA hash.
-	CommitSHA string = "000"
+	CommitSHA string = "none"
 	// Config contains all configurations
 	Config *models.Config
 )
@@ -35,16 +34,14 @@ func getConfigFile(filename string) (*os.File, error) {
 		slog.Error("Invalid configuration name", "got", filename, "want", "*config.json")
 		return nil, fmt.Errorf("invalid configuration filename")
 	}
-	f, err := os.Open("config/" + filename)
+	f, err := os.Open("config/" + filename) // #nosec G304
 	if err != nil {
-		slog.Warn("Could not open local config file, trying ~/.config/nirimgr/" + filename)
-
 		homeDir, homeErr := os.UserHomeDir()
 		if homeErr != nil {
 			return nil, homeErr
 		}
 		configPath := filepath.Join(homeDir, ".config", "nirimgr", filename)
-		f, err = os.Open(configPath)
+		f, err = os.Open(configPath) // #nosec G304
 		if err != nil {
 			return nil, err
 		}

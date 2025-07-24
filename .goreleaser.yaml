@@ -12,6 +12,6 @@ builds:
     ldflags:
       - -extldflags '-static'
       - -s -w
-      - -X config.Version={{.Version}}
-      - -X config.CommitSHA={{.FullCommit}}
-      - -X config.Date={{.Date}}
+      - -X github.com/soderluk/nirimgr/config.Version={{.Version}}
+      - -X github.com/soderluk/nirimgr/config.CommitSHA={{.FullCommit}}
+      - -X github.com/soderluk/nirimgr/config.BuildDate={{.Date}}

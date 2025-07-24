@@ -14,7 +14,81 @@ mimic the way i3wm handles the scratchpad.
 
 # Installation
 
+## Go install
+
 Run `go install github.com/soderluk/nirimgr@latest` to install nirimgr.
+
+## From GitHub Releases
+
+Get the latest release from the [Releases page](https://github.com/soderluk/nirimgr/releases/).
+
+Choose your arch and download the tarball.
+
+If you want to verify the download, also get the `nirimgr_x.x.x_checksums.txt` file.
+
+To verify the download run `sha256sum -c [checksums.txt]`
+
+```bash
+$ sha256sum -c nirimgr_x.x.x_checksums.txt
+
+sha256sum: nirimgr_x.x.x_darwin_amd64.tar.gz: No such file or directory
+nirimgr_x.x.x_darwin_amd64.tar.gz: FAILED open or read
+sha256sum: nirimgr_x.x.x_darwin_arm64.tar.gz: No such file or directory
+nirimgr_x.x.x_darwin_arm64.tar.gz: FAILED open or read
+nirimgr_x.x.x_linux_amd64.tar.gz: OK
+sha256sum: WARNING: 2 listed files could not be read
+```
+
+If you only downloaded one tarball, you'll get 2 failures on the checks. If you have 3 failed checks,
+please make sure you downloaded the tarball from https://github.com/soderluk/nirimgr/releases/.
+
+If things are still failing, please open an [issue](https://github.com/soderluk/nirimgr/issues/new).
+
+After verification succeeds, unzip the tarball somewhere, e.g. ~/Downloads/nirimgr.
+
+```bash
+tar xf nirimgr_x.x.x_linux_amd64.tar.gz --directory=~/Downloads/nirimgr/
+```
+
+The tarball includes the following files:
+
+- CHANGELOG.md: The changelog for this version.
+- LICENSE: The license file of the repository.
+- nirimgr: The executable file.
+- README.md: This readme.
+
+Move the `nirimgr` executable somewhere in your `PATH`, e.g. `/usr/local/bin`, or `~/bin`.
+
+Verify the version after installation:
+
+`nirimgr version`
+
+```bash
+$ nirimgr version
+
+┌──────────────┬────────────────────────────────────────────┐
+│   NIRIMGR    │                                            │
+├──────────────┼────────────────────────────────────────────┤
+│ Version      │ 0.1.2                                      │
+│ Commit       │ a86e7ad8bbea61b56ab8a2ee7eeea1e6aa30bfe9   │
+│ Build Date   │ 2025-07-24T08:24:50Z                       │
+│ ----------   │ ----------                                 │
+│ Build Info   │                                            │
+│ ----------   │ ----------                                 │
+│ Go version   │ go1.23.5                                   │
+│ -buildmode   │ exe                                        │
+│ -compiler    │ gc                                         │
+│ -trimpath    │ true                                       │
+│ CGO_ENABLED  │ 0                                          │
+│ CGO_CFLAGS   │                                            │
+│ CGO_CPPFLAGS │                                            │
+│ CGO_CXXFLAGS │                                            │
+│ CGO_LDFLAGS  │                                            │
+│ GOARCH       │ amd64                                      │
+│ GOOS         │ linux                                      │
+│ GOAMD64      │ v1                                         │
+└──────────────┴────────────────────────────────────────────┘
+```
 
 # Configuration
 
@@ -108,7 +182,7 @@ Please feel free to open a PR if you have other thoughts that we could do with n
 
 # Usage
 
-To use nirimgr, it provides two CLI-commands:
+To use nirimgr, it provides the following CLI-commands:
 
 - `events`: The events command starts listening on the niri event-stream. `nirimgr events`
 - `scratch`: The scratch command moves a window to the scratchpad workspace, or shows the window (moves the window
@@ -116,6 +190,7 @@ To use nirimgr, it provides two CLI-commands:
   as a keybind in niri configuration. `nirimgr scratch [move|show]`
 - `list`: The list command will list all the available actions or events, so you don't need to remember them all.
   `nirimgr list [actions|events]`
+- `version`: The version command prints the nirimgr version information. `nirimgr version`
 
 To use the scratchpad with Niri, you need to have a named workspace `scratchpad`, or if you want to configure it,
 set the scratchpadWorkspace configuration option to something else `"scratchpadWorkspace": "scratch"`.

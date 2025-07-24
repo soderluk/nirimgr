@@ -1,0 +1,55 @@
+{
+  "scratchpadWorkspace": "scratchpad",
+  "logLevel": "DEBUG",
+  "rules": [
+    {
+      "match": [
+        {
+          "title": "Bitwarden",
+          "appId": "zen"
+        }
+      ],
+      "actions": {
+        "MoveWindowToFloating": {},
+        "SetWindowWidth": {
+          "change": {
+            "SetFixed": 400
+          }
+        },
+        "SetWindowHeight": {
+          "change": {
+            "SetFixed": 600
+          }
+        }
+      }
+    },
+    {
+      "match": [
+        {
+          "appId": "org.gnome.Calculator"
+        }
+      ],
+      "actions": {
+        "MoveWindowToFloating": {},
+        "MoveFloatingWindow": {
+          "x": {
+            "SetFixed": 800
+          },
+          "y": {
+            "SetFixed": 200
+          }
+        },
+        "SetWindowWidth": {
+          "change": {
+            "SetFixed": 50
+          }
+        },
+        "SetWindowHeight": {
+          "change": {
+            "SetFixed": 50
+          }
+        }
+      }
+    }
+  ]
+}

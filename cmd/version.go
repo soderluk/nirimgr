@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"runtime/debug"
+	"strings"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/soderluk/nirimgr/config"
 	"github.com/spf13/cobra"
 )
@@ -15,26 +18,38 @@ var versionCmd = &cobra.Command{
 	Short: "Print version",
 	Long:  "Prints the version number and build information about nirimgr",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("nirimgr " + buildInfo())
+		table := tablewriter.NewTable(os.Stdout)
+		table.Header([]string{"nirimgr", ""})
+		c := 10
+		info := [][]string{
+			{"Version", config.Version},
+			{"Commit", config.CommitSHA},
+			{"Build Date", config.BuildDate},
+			{r("-", c), r("-", c)},
+			{"Build Info", ""},
+			{r("-", c), r("-", c)},
+			{"Go version", runtime.Version()},
+		}
+		bi, _ := debug.ReadBuildInfo()
+		for _, s := range bi.Settings {
+			info = append(info, []string{s.Key, s.Value})
+		}
+		for _, data := range info {
+			if err := table.Append(data[0], data[1]); err != nil {
+				fmt.Printf("Could not append %s to info\n", data[0])
+			}
+		}
+		if err := table.Render(); err != nil {
+			fmt.Println("Could not render table.")
+		}
 	},
+}
+
+// r returns the repeated string s, count c times.
+func r(s string, c int) string {
+	return strings.Repeat(s, c)
 }
 
 func init() {
 	rootCmd.AddCommand(versionCmd)
-}
-
-// buildInfo returns the build information about nirimgr
-func buildInfo() string {
-	info := fmt.Sprintf("\nVersion:\t%s\nCommit:\t%s\nGo Version:\t%s\nBuild Date:\t%s\nBuild info: \n",
-		config.Version,
-		config.CommitSHA,
-		runtime.Version(),
-		config.BuildDate,
-	)
-	bi, _ := debug.ReadBuildInfo()
-	for _, setting := range bi.Settings {
-		info += fmt.Sprintf("%s:\t%s\n", setting.Key, setting.Value)
-	}
-
-	return info
 }

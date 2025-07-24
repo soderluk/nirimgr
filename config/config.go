@@ -61,7 +61,12 @@ func newConfig(filename string) (*models.Config, error) {
 		return nil, err
 	}
 
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			slog.Error("Could not close config file", "error", err.Error())
+		}
+	}()
+
 	var c *models.Config
 	err = json.NewDecoder(f).Decode(&c)
 

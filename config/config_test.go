@@ -28,12 +28,16 @@ func TestNewConfig_LocalFile(t *testing.T) {
 
 	// Move file to expected local path
 	if err := os.MkdirAll("config", 0o755); err != nil {
-		t.Logf("could not create directory 'config'")
+		t.Log("could not create directory 'config'")
 	}
 	if err := os.Rename(file, "config/test_config.json"); err != nil {
 		t.Logf("could not rename file %v", file)
 	}
-	defer os.Remove("config/test_config.json")
+	defer func() {
+		if err := os.Remove("config/test_config.json"); err != nil {
+			t.Log("could not remove config file")
+		}
+	}()
 
 	cfg, err := newConfig("test_config.json")
 	if err != nil {
@@ -58,7 +62,11 @@ func TestNewConfig_HomeFallback(t *testing.T) {
 	if err := os.Rename(file, configPath); err != nil {
 		t.Logf("could not rename file '%v' to '%v'", file, configPath)
 	}
-	defer os.Remove(configPath)
+	defer func() {
+		if err := os.Remove(configPath); err != nil {
+			t.Log("could not remove config path")
+		}
+	}()
 
 	cfg, err := newConfig("test_config.json")
 	if err != nil {
@@ -74,12 +82,16 @@ func TestConfigure_SetsGlobalConfig(t *testing.T) {
 	file, cleanup := createTempConfigFile(t, configContent)
 	defer cleanup()
 	if err := os.MkdirAll("config", 0o755); err != nil {
-		t.Logf("could not create directory 'config'")
+		t.Log("could not create directory 'config'")
 	}
 	if err := os.Rename(file, "config/test_config.json"); err != nil {
 		t.Logf("could not rename file '%v'", file)
 	}
-	defer os.Remove("config/test_config.json")
+	defer func() {
+		if err := os.Remove("config/test_config.json"); err != nil {
+			t.Log("could not remove test config file")
+		}
+	}()
 
 	err := Configure("test_config.json")
 	if err != nil {
@@ -91,7 +103,10 @@ func TestConfigure_SetsGlobalConfig(t *testing.T) {
 }
 
 func TestGetConfigFile_Error(t *testing.T) {
-	os.Remove("config/test_config.json")
+	err := os.Remove("config/test_config.json")
+	if err != nil {
+		t.Log("could not remove test config.")
+	}
 	cfg, err := getConfigFile("test_config.json")
 	if err == nil || cfg != nil {
 		t.Error("Expected error when config files are missing")

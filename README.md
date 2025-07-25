@@ -5,49 +5,48 @@ A manager for niri, written in Go.
 This is a small project mainly directed towards learning a bit more of Go.
 
 I've been using [Niri WM](https://github.com/YaLTeR/niri) for a while, and
-saw a helper script by YaLTeR in the discussions, and thought, why not try
-and port the same in Go. [Here's](https://github.com/YaLTeR/niri/discussions/1599) the script.
+saw a [helper script by YaLTeR](https://github.com/YaLTeR/niri/discussions/1599) in the discussions, and thought, why not try
+and port the same in Go.
 
 I've used i3wm before, and it had scratchpad functionality, which I used quite
 a lot. I thought this would be a great learning experience for myself, and I try to
 mimic the way i3wm handles the scratchpad.
 
+The scratchpad is very simple, but works for me. If you have any suggestions on how to improve it, please don't hesitate
+to open an [issue](https://github.com/soderluk/nirimgr/issues/new).
+
+---
+
+Q: Why not create this in Rust?
+
+A: Because I need to improve my Golang knowledge, and this was a great opportunity for me to dive a bit deeper into
+the language, as well as learn a bit more on the Niri IPC and how it works.
+
 # Installation
 
-## Go install
+## Using go install
 
-Run `go install github.com/soderluk/nirimgr@latest` to install nirimgr.
+Run `go install github.com/soderluk/nirimgr@latest` to install the latest version of nirimgr.
 
 ## From GitHub Releases
 
 Get the latest release from the [Releases page](https://github.com/soderluk/nirimgr/releases/).
 
-Choose your arch and download the tarball.
+Choose your arch and download the tarball, and optionally the checksums-file if you want to verify the archive.
 
-If you want to verify the download, also get the `nirimgr_x.x.x_checksums.txt` file.
-
-To verify the download run `sha256sum -c [checksums.txt]`
+To verify the archive, run `sha256sum --ignore-missing -c nirimgr_x.x.x_checksums.txt` (replace x.x.x with the current version of the module)
 
 ```bash
-$ sha256sum -c nirimgr_x.x.x_checksums.txt
+$ sha256sum --ignore-missing -c nirimgr_x.x.x_checksums.txt
 
-sha256sum: nirimgr_x.x.x_darwin_amd64.tar.gz: No such file or directory
-nirimgr_x.x.x_darwin_amd64.tar.gz: FAILED open or read
-sha256sum: nirimgr_x.x.x_darwin_arm64.tar.gz: No such file or directory
-nirimgr_x.x.x_darwin_arm64.tar.gz: FAILED open or read
 nirimgr_x.x.x_linux_amd64.tar.gz: OK
-sha256sum: WARNING: 2 listed files could not be read
 ```
 
-If you only downloaded one tarball, you'll get 2 failures on the checks. If you have 3 failed checks,
-please make sure you downloaded the tarball from https://github.com/soderluk/nirimgr/releases/.
-
-If things are still failing, please open an [issue](https://github.com/soderluk/nirimgr/issues/new).
-
-After verification succeeds, unzip the tarball somewhere, e.g. ~/Downloads/nirimgr.
+After verification succeeds, extract the tarball somewhere, e.g. `~/Downloads/nirimgr`.
 
 ```bash
-tar xf nirimgr_x.x.x_linux_amd64.tar.gz --directory=~/Downloads/nirimgr/
+$ mkdir -p ~/Downloads/nirimgr
+$ tar xf nirimgr_x.x.x_linux_amd64.tar.gz --directory=~/Downloads/nirimgr/
 ```
 
 The tarball includes the following files:
@@ -59,42 +58,35 @@ The tarball includes the following files:
 
 Move the `nirimgr` executable somewhere in your `PATH`, e.g. `/usr/local/bin`, or `~/bin`.
 
+```bash
+$ sudo cp nirimgr /usr/local/bin
+```
+
+## Build from source
+
+Some prerequisites necessary: nirimgr uses a [justfile](https://github.com/casey/just) to make building and installing easier. Install `just` with `cargo install just`.
+
+1. Clone the repository: `git clone https://github.com/soderluk/nirimgr.git && cd nirimgr`
+2. Build the project with `just build`. This will compile the source code and create an executable `nirimgr`.
+3. Install the executable
+
+   - Copy the executable anywhere on your path: `sudo cp nirimgr /usr/local/bin`
+   - If you have GOPATH set, you can run `just install` to install the executable in `$GOPATH/bin`.
+
+## Post install
+
 Verify the version after installation:
 
-`nirimgr version`
-
 ```bash
-$ nirimgr version
-
-┌──────────────┬────────────────────────────────────────────┐
-│   NIRIMGR    │                                            │
-├──────────────┼────────────────────────────────────────────┤
-│ Version      │ 0.1.2                                      │
-│ Commit       │ a86e7ad8bbea61b56ab8a2ee7eeea1e6aa30bfe9   │
-│ Build Date   │ 2025-07-24T08:24:50Z                       │
-│ ----------   │ ----------                                 │
-│ Build Info   │                                            │
-│ ----------   │ ----------                                 │
-│ Go version   │ go1.23.5                                   │
-│ -buildmode   │ exe                                        │
-│ -compiler    │ gc                                         │
-│ -trimpath    │ true                                       │
-│ CGO_ENABLED  │ 0                                          │
-│ CGO_CFLAGS   │                                            │
-│ CGO_CPPFLAGS │                                            │
-│ CGO_CXXFLAGS │                                            │
-│ CGO_LDFLAGS  │                                            │
-│ GOARCH       │ amd64                                      │
-│ GOOS         │ linux                                      │
-│ GOAMD64      │ v1                                         │
-└──────────────┴────────────────────────────────────────────┘
+$ nirimgr --version
+nirimgr version vx.x.x (commit: aaaaaaa, built at: 2025-07-25T06:05:16Z)
 ```
 
 # Configuration
 
 The configuration file for nirimgr should be put in ~/.config/nirimgr/config.json
 
-Example configuration:
+Example configuration (see: [config.json](./examples/config.json)):
 
 ```json
 {
@@ -178,19 +170,17 @@ The actions you can use can be found in the [niri ipc documentation](https://yal
 
 _NOTE_: Currently only `WindowsChanged`, `WindowOpenedOrChanged` and `WindowClosed` events are watched.
 
-Please feel free to open a PR if you have other thoughts that we could do with nirimgr.
+Please feel free to open a PR if you have other thoughts what we could do with nirimgr.
 
 # Usage
 
 To use nirimgr, it provides the following CLI-commands:
 
-- `events`: The events command starts listening on the niri event-stream. `nirimgr events`
-- `scratch`: The scratch command moves a window to the scratchpad workspace, or shows the window (moves the window
+- `nirimgr events`: The events command starts listening on the niri event-stream.
+- `nirimgr scratch [move|show]`: The scratch command moves a window to the scratchpad workspace, or shows the window (moves the window
   to the currently active workspace) from the scratchpad workspace. This command should be configured
-  as a keybind in niri configuration. `nirimgr scratch [move|show]`
-- `list`: The list command will list all the available actions or events, so you don't need to remember them all.
-  `nirimgr list [actions|events]`
-- `version`: The version command prints the nirimgr version information. `nirimgr version`
+  as a key-bind in niri configuration.
+- `nirimgr list [actions|events]`: The list command will list all the available actions or events, so you don't need to remember them all.
 
 To use the scratchpad with Niri, you need to have a named workspace `scratchpad`, or if you want to configure it,
 set the scratchpadWorkspace configuration option to something else `"scratchpadWorkspace": "scratch"`.
@@ -206,7 +196,7 @@ The above will create a new named workspace, `scratchpad`, and focus immediately
 workspace.
 
 Then if you want to use the scratchpad, configure `nirimgr scratch move` and `nirimgr scratch show`
-in a keybind, like so:
+in a key-bind, like so:
 
 ```kdl
 binds {
@@ -237,6 +227,20 @@ spawn-at-startup "nirimgr" "events"
 This will listen on the event stream, and react to the matching windows accordingly. You need to
 define the `rules` in `config.json` and add the actions you want to do to the window when the
 event happens.
+
+# Justfile
+
+The following actions can be performed with the `just` command:
+
+- build: Builds the source into an executable
+- coverage: Opens up the code coverage in the browser
+- fmt: Runs `go fmt` on the project.
+- help: Lists the available recipes. This is the default, if you run `just` without arguments.
+- install: Installs the executable in your GOPATH/bin.
+- run RUNARGS: Runs the module with RUNARGS. If the RUNARGS contains a space, you need to quote them, e.g. `just run "list actions"`
+- test: Runs `go test` on the project.
+- version: Prints the version.
+- vet: Runs `go vet` on the project.
 
 # Acknowledgements
 

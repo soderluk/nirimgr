@@ -20,7 +20,7 @@ var (
 	// BuildDate is the date when nirimgr was built
 	BuildDate string = "unknown"
 	// CommitSHA contains the build commit SHA hash.
-	CommitSHA string = "none"
+	CommitSHA string = "unknown"
 	// Config contains all configurations
 	Config *models.Config
 )

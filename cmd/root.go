@@ -20,17 +20,14 @@
 // or show a window from the scratchpad workspace.
 //
 //	Usage: nirimgr scratch [move|show]
-//
-// # Version
-//
-// The version command prints out the version and build info of nirimgr.
-//
-//	Usage: nirimgr version
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"runtime/debug"
 
+	"github.com/soderluk/nirimgr/config"
 	"github.com/spf13/cobra"
 )
 
@@ -44,6 +41,7 @@ var rootCmd = &cobra.Command{
 		This command can handle the actions to be done for such cases. E.g. set a window to
 		floating, when the app id and title of the window matches a rule.
 		There is also a "scratchpad" command that can be run on a key-bind.`,
+	Version: getVersionInfo(),
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -54,4 +52,30 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+// getVersionInfo returns the version of the executable.
+func getVersionInfo() string {
+	if config.Version == "dev" {
+		if info, ok := debug.ReadBuildInfo(); ok {
+			for _, setting := range info.Settings {
+				if setting.Key == "vcs.revision" {
+					config.CommitSHA = setting.Value[:8]
+				}
+				if setting.Key == "vcs.time" {
+					config.BuildDate = setting.Value
+				}
+			}
+			config.Version = info.Main.Version
+			if config.Version == "(devel)" {
+				return config.Version
+			}
+		}
+	}
+
+	if config.CommitSHA == "unknown" || config.BuildDate == "unknown" {
+		return config.Version
+	}
+
+	return fmt.Sprintf("%s (commit: %s, built at: %s)", config.Version, config.CommitSHA, config.BuildDate)
 }

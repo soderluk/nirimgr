@@ -3,6 +3,34 @@
   "logLevel": "DEBUG",
   "rules": [
     {
+      "type": "workspace",
+      "match": [
+        {
+          "name": "chat"
+        }
+      ],
+      "actions": {
+        "FocusWorkspace": {},
+        "MoveWorkspaceToMonitor": {
+          "output": "eDP-1"
+        }
+      }
+    },
+    {
+      "type": "workspace",
+      "match": [
+        {
+          "name": "work",
+          "output": "eDP-1"
+        }
+      ],
+      "actions": {
+        "FocusWorkspace": {},
+        "MoveWorkspaceToMonitorRight": {}
+      }
+    },
+    {
+      "type": "window",
       "match": [
         {
           "title": "Bitwarden",
@@ -24,6 +52,7 @@
       }
     },
     {
+      "type": "window",
       "match": [
         {
           "appId": "org.gnome.Calculator"

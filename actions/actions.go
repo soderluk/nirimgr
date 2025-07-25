@@ -31,9 +31,23 @@ func SetActionID(a Action, id uint64) Action {
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
 	}
+	slog.Debug("Setting Action ID", "action", a.GetName())
+	// Check if there is a field ID.
 	idField := value.FieldByName("ID")
 	if idField.IsValid() && idField.CanSet() && idField.Kind() == reflect.Uint64 {
+		slog.Debug("ID field found on action, setting it", "ID", id)
 		idField.SetUint(id)
+	}
+	// Check if the action has a field Reference.
+	referenceField := value.FieldByName("Reference")
+	if referenceField.IsValid() && referenceField.CanSet() && referenceField.Kind() == reflect.Struct {
+		slog.Debug("Reference field found on action")
+		// Set the ID field for the Reference.
+		idField = referenceField.FieldByName("ID")
+		if idField.IsValid() && idField.CanSet() && idField.Kind() == reflect.Uint64 {
+			slog.Debug("ID Field found for Reference, setting it", "ID", id)
+			idField.SetUint(id)
+		}
 	}
 	return a
 }

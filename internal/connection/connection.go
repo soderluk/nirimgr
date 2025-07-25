@@ -38,8 +38,11 @@ var pool = sync.Pool{
 	},
 }
 
-// Socket returns the NiriSocket from the pool.
-func Socket() *NiriSocket {
+// Socket can be used to get the NiriSocket from the pool.
+var Socket = socketImpl
+
+// socketImpl returns the NiriSocket from the pool.
+func socketImpl() *NiriSocket {
 	sock, ok := pool.Get().(*NiriSocket)
 	if !ok {
 		slog.Error("Could not get socket")
@@ -92,7 +95,6 @@ func (s *NiriSocket) Close() {
 func PerformAction(action actions.Action) bool {
 	socket := Socket()
 	name := action.GetName()
-	slog.Debug("PerformAction", "name", name, "action", action)
 
 	// Convert the action to a map.
 	actionData, err := structToMap(action)
@@ -110,6 +112,7 @@ func PerformAction(action actions.Action) bool {
 		slog.Error("Could not convert action request to string", "error", err.Error())
 		return false
 	}
+	slog.Debug("PerformAction", "request", request)
 	if err := socket.Send(string(request)); err != nil {
 		slog.Error("Error sending request", "error", err.Error())
 		return false
@@ -146,7 +149,7 @@ func PerformRequest(req models.NiriRequest) (<-chan models.Response, error) {
 	}()
 
 	if err := socket.Send(fmt.Sprintf("\"%s\"", req)); err != nil {
-		return nil, fmt.Errorf("error requesting event stream: %w", err)
+		return nil, fmt.Errorf("error performing request: %w", err)
 	}
 
 	return stream, nil
@@ -160,6 +163,9 @@ func structToMap(a any) (map[string]any, error) {
 		return nil, err
 	}
 	err = json.Unmarshal(b, &m)
+	// Remove both "Name" and "name" from the map if present.
+	delete(m, "Name")
+	delete(m, "name")
 	return m, err
 }
 

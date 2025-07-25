@@ -63,7 +63,7 @@ func TestRuleMatches(t *testing.T) {
 	for _, tt := range tests {
 		rule := rules[tt.ruleIdx]
 		window := windows[tt.windowIdx]
-		got := rule.Matches(window)
+		got := rule.WindowMatches(window)
 		if got != tt.wantMatch {
 			t.Errorf("Rule[%d].Matches(Window[%d]) = %v, want %v", tt.ruleIdx, tt.windowIdx, got, tt.wantMatch)
 		}

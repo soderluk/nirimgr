@@ -30,6 +30,7 @@ func Run() {
 		panic(err)
 	}
 	existingWindows := make(map[uint64]*models.Window)
+	existingWorkspaces := make(map[uint64]*models.Workspace)
 
 	for event := range events {
 		switch ev := event.(type) {
@@ -46,6 +47,23 @@ func Run() {
 		case *WindowClosed:
 			slog.Debug("Handling event", "name", common.Repr(ev))
 			delete(existingWindows, ev.ID)
+		case *WorkspacesChanged:
+			slog.Debug("Handling event", "name", common.Repr(ev))
+			// Remove workspaces that are no longer present
+			newWorkspaceIDs := make(map[uint64]struct{})
+			for _, workspace := range ev.Workspaces {
+				newWorkspaceIDs[workspace.ID] = struct{}{}
+			}
+			for id := range existingWorkspaces {
+				if _, found := newWorkspaceIDs[id]; !found {
+					slog.Debug("Removing workspace from existing workspaces", "id", id)
+					delete(existingWorkspaces, id)
+				}
+			}
+			for _, workspace := range ev.Workspaces {
+				matchWorkspaceAndPerformActions(workspace, existingWorkspaces)
+				existingWorkspaces[workspace.ID] = workspace
+			}
 		default:
 		}
 	}
@@ -120,7 +138,10 @@ func matchWindowAndPerformActions(window *models.Window, existingWindows map[uin
 	window.Matched = false
 	var rawActions map[string]json.RawMessage
 	for _, r := range config.Config.GetRules() {
-		if r.Matches(*window) {
+		if r.Type != "window" && r.Type != "" {
+			continue
+		}
+		if r.WindowMatches(*window) {
 			window.Matched = true
 			if len(r.Actions) > 0 {
 				rawActions = r.Actions
@@ -133,6 +154,39 @@ func matchWindowAndPerformActions(window *models.Window, existingWindows map[uin
 		for _, a := range actionList {
 			// Set the action Id dynamically here.
 			a = actions.SetActionID(a, window.ID)
+			connection.PerformAction(a)
+		}
+	}
+}
+
+// matchWorkspaceAndPerformActions updates the workspace struct if it matches the rule as configured in the config file.
+//
+// If the matching workspace has any defined actions in the config, run them sequentially on the matched workspace.
+func matchWorkspaceAndPerformActions(workspace *models.Workspace, existingWorkspaces map[uint64]*models.Workspace) {
+	workspace.Matched = false
+	if existing, ok := existingWorkspaces[workspace.ID]; ok {
+		workspace.Matched = existing.Matched
+	}
+	matchedBefore := workspace.Matched
+
+	workspace.Matched = false
+	var rawActions map[string]json.RawMessage
+	for _, r := range config.Config.GetRules() {
+		if r.Type != "workspace" {
+			continue
+		}
+		if r.WorkspaceMatches(*workspace) {
+			workspace.Matched = true
+			if len(r.Actions) > 0 {
+				rawActions = r.Actions
+			}
+			break
+		}
+	}
+	actionList := actions.ParseRawActions(rawActions)
+	if workspace.Matched && !matchedBefore {
+		for _, a := range actionList {
+			a = actions.SetActionID(a, workspace.ID)
 			connection.PerformAction(a)
 		}
 	}

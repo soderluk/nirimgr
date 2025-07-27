@@ -102,15 +102,25 @@ func showScratchpad() {
 	// Return the last window in the list, if we have any.
 	if len(workspaceWindows) > 0 {
 		window := workspaceWindows[len(workspaceWindows)-1]
-		action := actions.MoveWindowToWorkspace{
-			AName:    actions.AName{Name: "MoveWindowToWorkspace"},
-			WindowID: window.ID,
-			Reference: actions.WorkspaceReferenceArg{
-				ID: focusedWorkspace.ID,
+		actionList := []actions.Action{
+			actions.MoveWindowToWorkspace{
+				AName:    actions.AName{Name: "MoveWindowToWorkspace"},
+				WindowID: window.ID,
+				Reference: actions.WorkspaceReferenceArg{
+					ID: focusedWorkspace.ID,
+				},
+				Focus: true,
 			},
-			Focus: true,
+			// Manually focus the window, since the `Focus: true` does nothing in the above action.
+			actions.FocusWindow{
+				AName: actions.AName{Name: "FocusWindow"},
+				ID:    window.ID,
+			},
 		}
-		connection.PerformAction(action)
+
+		for _, action := range actionList {
+			connection.PerformAction(action)
+		}
 	}
 }
 

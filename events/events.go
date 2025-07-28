@@ -152,8 +152,11 @@ func matchWindowAndPerformActions(window *models.Window, existingWindows map[uin
 	actionList := actions.ParseRawActions(rawActions)
 	if window.Matched && !matchedBefore {
 		for _, a := range actionList {
-			// Set the action Id dynamically here.
-			a = actions.SetActionID(a, window.ID)
+			// Set the action IDs dynamically here.
+			a = actions.HandleDynamicIDs(a, models.PossibleKeys{
+				ID:       window.ID,
+				WindowID: window.ID,
+			})
 			connection.PerformAction(a)
 		}
 	}
@@ -186,7 +189,19 @@ func matchWorkspaceAndPerformActions(workspace *models.Workspace, existingWorksp
 	actionList := actions.ParseRawActions(rawActions)
 	if workspace.Matched && !matchedBefore {
 		for _, a := range actionList {
-			a = actions.SetActionID(a, workspace.ID)
+			// Set the Action IDs dynamically here.
+			// Note that for the reference, only one is actually applied, in the order:
+			// ID, Index, Name.
+			// The IDs are only set if the action has the field.
+			a = actions.HandleDynamicIDs(a, models.PossibleKeys{
+				ID:             workspace.ID,
+				ActiveWindowID: workspace.ActiveWindowID,
+				Reference: models.ReferenceKeys{
+					ID:    workspace.ID,
+					Index: workspace.Idx,
+					Name:  workspace.Name,
+				},
+			})
 			connection.PerformAction(a)
 		}
 	}

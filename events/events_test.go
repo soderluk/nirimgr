@@ -68,9 +68,9 @@ func TestParseEvent_UnmarshalError(t *testing.T) {
 	}
 }
 
-func TestUpdateMatched_MatchAndAction(t *testing.T) {
+func TestUpdateWindowMatched_MatchAndAction(t *testing.T) {
 	window := &models.Window{ID: 1, Title: "Test window", AppID: "test-app"}
-	allWindows := map[uint64]*models.Window{}
+	existingWindows := map[uint64]*models.Window{}
 
 	// Simulate config
 	cfg := &models.Config{
@@ -85,8 +85,32 @@ func TestUpdateMatched_MatchAndAction(t *testing.T) {
 		},
 	}
 	config.Config = cfg
-	matchWindowAndPerformActions(window, allWindows)
+	matchWindowAndPerformActions(window, existingWindows)
 	if !window.Matched {
 		t.Errorf("Expected window to be matched")
+	}
+}
+
+func TestUpdateWorkspaceMatched_MatchAndAction(t *testing.T) {
+	workspace := &models.Workspace{ID: 1, Name: "Test workspace", Output: "test-output"}
+	existingWorkspaces := map[uint64]*models.Workspace{}
+
+	// Simulate config
+	cfg := &models.Config{
+		Rules: []models.Rule{
+			{
+				Type: "workspace",
+				Match: []models.Match{
+					{
+						Name: "Test workspace",
+					},
+				},
+			},
+		},
+	}
+	config.Config = cfg
+	matchWorkspaceAndPerformActions(workspace, existingWorkspaces)
+	if !workspace.Matched {
+		t.Errorf("Expected workspace to be matched")
 	}
 }

@@ -20,33 +20,73 @@ import (
 	"encoding/json"
 	"log/slog"
 	"reflect"
+
+	"github.com/soderluk/nirimgr/models"
 )
 
-// SetActionID sets the ID field of the action dynamically.
+// HandleDynamicIDs assigns the given possible keys to the action.
 //
-// This is used when matching the windows, and we don't yet have the ID
-// of the window when getting the action.
-func SetActionID(a Action, id uint64) Action {
+// These are IDs or references we need to dynamically assign to the action,
+// if they exist. For the reference, the ID takes precedence, then Index, and at
+// last the Name.
+// This is used for the matching of workspaces and windows. Since we only get to know
+// the necessary IDs during runtime, we want to be able to set them dynamically.
+func HandleDynamicIDs(a Action, possibleKeys models.PossibleKeys) Action {
 	value := reflect.ValueOf(a)
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
 	}
-	slog.Debug("Setting Action ID", "action", a.GetName())
-	// Check if there is a field ID.
-	idField := value.FieldByName("ID")
-	if idField.IsValid() && idField.CanSet() && idField.Kind() == reflect.Uint64 {
-		slog.Debug("ID field found on action, setting it", "ID", id)
-		idField.SetUint(id)
+
+	// Helper to set a uint64 field if present.
+	setUintField := func(field reflect.Value, fieldName string, val any) {
+		f := field.FieldByName(fieldName)
+		if f.IsValid() && f.CanSet() {
+			slog.Debug("Dynamically setting uint field", "field", fieldName, "value", val)
+			switch f.Kind() {
+			case reflect.Uint8:
+				f.SetUint(uint64(val.(uint8)))
+			case reflect.Uint64:
+				f.SetUint(uint64(val.(uint64)))
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				f.SetInt(int64(val.(int64)))
+			}
+		}
 	}
-	// Check if the action has a field Reference.
+	// Helper to set a string field if present.
+	setStringField := func(field reflect.Value, fieldName string, val string) {
+		f := field.FieldByName(fieldName)
+		if f.IsValid() && f.CanSet() && f.Kind() == reflect.String {
+			slog.Debug("Dynamically setting string field", "field", fieldName, "value", val)
+			f.SetString(val)
+		}
+	}
+
+	// Set direct fields if present
+	if possibleKeys.ID != 0 {
+		setUintField(value, "ID", possibleKeys.ID)
+	}
+	if possibleKeys.WindowID != 0 {
+		setUintField(value, "WindowID", possibleKeys.WindowID)
+	}
+	if possibleKeys.ActiveWindowID != 0 {
+		setUintField(value, "ActiveWindowID", possibleKeys.ActiveWindowID)
+	}
+	if possibleKeys.WorkspaceID != 0 {
+		setUintField(value, "WorkspaceID", possibleKeys.WorkspaceID)
+	}
+	if possibleKeys.Index != 0 {
+		setUintField(value, "Index", possibleKeys.Index)
+	}
+
+	// Handle Reference struct if present
 	referenceField := value.FieldByName("Reference")
 	if referenceField.IsValid() && referenceField.CanSet() && referenceField.Kind() == reflect.Struct {
-		slog.Debug("Reference field found on action")
-		// Set the ID field for the Reference.
-		idField = referenceField.FieldByName("ID")
-		if idField.IsValid() && idField.CanSet() && idField.Kind() == reflect.Uint64 {
-			slog.Debug("ID Field found for Reference, setting it", "ID", id)
-			idField.SetUint(id)
+		if possibleKeys.Reference.ID != 0 {
+			setUintField(referenceField, "ID", possibleKeys.Reference.ID)
+		} else if possibleKeys.Reference.Index != 0 {
+			setUintField(referenceField, "Index", possibleKeys.Reference.Index)
+		} else if possibleKeys.Reference.Name != "" {
+			setStringField(referenceField, "Name", possibleKeys.Reference.Name)
 		}
 	}
 	return a

@@ -392,3 +392,24 @@ type Workspace struct {
 	// This is not a part of the Niri Workspace model.
 	Matched bool
 }
+
+// ReferenceKeys contains the possible keys a WorkspaceReferenceArg can have.
+//
+// This is used when setting the reference dynamically on matching workspaces.
+type ReferenceKeys struct {
+	ID    uint64
+	Index uint8
+	Name  string
+}
+
+// PossibleKeys contains the possible keys an action could have.
+//
+// This is used when setting the action IDs dynamically during matching of windows.
+type PossibleKeys struct {
+	ID             uint64
+	WindowID       uint64
+	ActiveWindowID uint64
+	WorkspaceID    uint64
+	Index          uint8
+	Reference      ReferenceKeys
+}

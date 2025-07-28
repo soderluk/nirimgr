@@ -28,7 +28,7 @@ type WorkspacesChanged struct {
 	//
 	// This configuration completely replaces the previous configuration. If any workspaces
 	// are missing from here, then they were deleted.
-	Workspaces []models.Workspace `json:"workspaces"`
+	Workspaces []*models.Workspace `json:"workspaces"`
 }
 
 // WorkspaceUrgencyChanged when the workspace urgency changed.

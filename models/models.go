@@ -68,16 +68,20 @@ func (c *Config) GetRules() []Rule {
 
 // Match is used to match a window.
 type Match struct {
-	// Title matches the title of the window.
+	// Title matches the title of the window. Used only for rules with type "window".
 	Title string `json:"title,omitempty"`
-	// AppID matches the app-id of the window.
+	// AppID matches the app-id of the window. Used only for rules with type "window".
 	AppID string `json:"appId,omitempty"`
+	// Name is used for rule types "workspace" to match on the workspace name.
+	Name string `json:"name,omitempty"`
+	// Output is used for rule types "workspace" to match on the workspace output name.
+	Output string `json:"output,omitempty"`
 }
 
-// Matches checks if the window matches the specified rule match.
-func (m Match) Matches(window Window) bool {
+// WindowMatches checks if the window matches the specified rule match.
+func (m Match) WindowMatches(window Window) bool {
 	if m.Title == "" && m.AppID == "" {
-		slog.Debug("Title and AppID is empty for window", "window", window.ID)
+		slog.Debug("Title and AppID empty for window", "window", window.ID)
 		return false
 	}
 	matched := true
@@ -102,8 +106,38 @@ func (m Match) Matches(window Window) bool {
 	return matched
 }
 
+// WorkspaceMatches checks if the workspace matches the specified rule match.
+func (m Match) WorkspaceMatches(workspace Workspace) bool {
+	if m.Name == "" && m.Output == "" {
+		slog.Debug("Name and Output empty for workspace", "workspace", workspace.ID)
+		return false
+	}
+	matched := true
+
+	if m.Name != "" {
+		titleMatch, err := regexp.MatchString(m.Name, workspace.Name)
+		if err != nil {
+			slog.Error("Could not match Name", "error", err.Error())
+			return false
+		}
+		matched = matched && titleMatch
+	}
+	if m.Output != "" {
+		appMatch, err := regexp.MatchString(m.Output, workspace.Output)
+		if err != nil {
+			slog.Error("Could not match Output", "error", err.Error())
+			return false
+		}
+		matched = matched && appMatch
+	}
+
+	return matched
+}
+
 // Rule contains the matches, excludes and actions for a window.
 type Rule struct {
+	// Type is the type of object we want to match, e.g. window or workspace. Defaults to window.
+	Type string `json:"type"`
 	// Match list of matches to target a window.
 	Match []Match `json:"match,omitempty"`
 	// Exclude list of matches to target a window, to be excluded from the match.
@@ -115,12 +149,16 @@ type Rule struct {
 	Actions map[string]json.RawMessage `json:"actions,omitempty"`
 }
 
-// Matches checks if the window matches the given rule.
-func (r Rule) Matches(window Window) bool {
+// WindowMatches checks if the window matches the given rule.
+func (r Rule) WindowMatches(window Window) bool {
+	if r.Type != "window" && r.Type != "" {
+		return false
+	}
+
 	if len(r.Match) > 0 {
 		matched := false
 		for _, m := range r.Match {
-			if m.Matches(window) {
+			if m.WindowMatches(window) {
 				matched = true
 				break
 			}
@@ -130,7 +168,33 @@ func (r Rule) Matches(window Window) bool {
 		}
 	}
 	for _, m := range r.Exclude {
-		if m.Matches(window) {
+		if m.WindowMatches(window) {
+			return false
+		}
+	}
+	return true
+}
+
+// WorkspaceMatches checks if the workspace matches the given rule.
+func (r *Rule) WorkspaceMatches(workspace Workspace) bool {
+	if r.Type != "workspace" {
+		return false
+	}
+
+	if len(r.Match) > 0 {
+		matched := false
+		for _, m := range r.Match {
+			if m.WorkspaceMatches(workspace) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
+	for _, m := range r.Exclude {
+		if m.WorkspaceMatches(workspace) {
 			return false
 		}
 	}
@@ -323,4 +387,29 @@ type Workspace struct {
 	IsFocused bool `json:"is_focused"`
 	// ActiveWindowID is the ID of the active window on this workspace, if any.
 	ActiveWindowID uint64 `json:"active_window_id"`
+	// Matched tells if the workspace matches a rule defined by nirimgr rules.
+	//
+	// This is not a part of the Niri Workspace model.
+	Matched bool
+}
+
+// ReferenceKeys contains the possible keys a WorkspaceReferenceArg can have.
+//
+// This is used when setting the reference dynamically on matching workspaces.
+type ReferenceKeys struct {
+	ID    uint64
+	Index uint8
+	Name  string
+}
+
+// PossibleKeys contains the possible keys an action could have.
+//
+// This is used when setting the action IDs dynamically during matching of windows.
+type PossibleKeys struct {
+	ID             uint64
+	WindowID       uint64
+	ActiveWindowID uint64
+	WorkspaceID    uint64
+	Index          uint8
+	Reference      ReferenceKeys
 }

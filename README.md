@@ -94,9 +94,53 @@ Example configuration (see: [config.json](./examples/config.json)):
   "scratchpadWorkspace": "scratchpad",
   // Set the log level of the nirimgr command. Supported levels "DEBUG", "INFO", "WARN", "ERROR"
   "logLevel": "DEBUG",
-  // Window rules and actions to do on the matched window.
+  // Window and/or Workspace rules and actions to do on the matched window/workspace.
   "rules": [
     {
+      // This rule matches workspaces.
+      "type": "workspace",
+      "match": [
+        {
+          // Matches on the workspace name "chat"
+          "name": "chat"
+        }
+      ],
+      "exclude": [
+        // Add any excluded matches here.
+        {
+          "name": "discord"
+        }
+      ],
+      "actions": {
+        // Focus the workspace
+        "FocusWorkspace": {},
+        // Move the workspace to the monitor eDP-1
+        // I.e. we always want our chat workspace on a specific monitor.
+        "MoveWorkspaceToMonitor": {
+          "output": "eDP-1"
+        }
+      }
+    },
+    {
+      "type": "workspace",
+      "match": [
+        {
+          // Match the workspace named "work", and if it's being on output "eDP-1".
+          "name": "work",
+          "output": "eDP-1"
+        }
+      ],
+      "actions": {
+        // Focus the workspace.
+        "FocusWorkspace": {},
+        // Move the workspace to the monitor on the right.
+        // I.e. we always want to move our work workspace to the "main" screen, if it exists.
+        "MoveWorkspaceToMonitorRight": {}
+      }
+    },
+    {
+      // This rule matches a window.
+      "type": "window",
       "match": [
         {
           // Match the title Bitwarden
@@ -105,16 +149,22 @@ Example configuration (see: [config.json](./examples/config.json)):
           "appId": "zen"
         }
       ],
+      "exclude": [
+        // Add any exclude matches here.
+        {
+          "title": "Firefox"
+        }
+      ],
       "actions": {
-        // Move the matching window to floating
+        // Move the window to floating.
         "MoveWindowToFloating": {},
-        // Set the floating window width to a fixed 400
+        // Set the window width to a fixed 400 pixels.
         "SetWindowWidth": {
           "change": {
             "SetFixed": 400
           }
         },
-        // Set the floating window height to a fixed 600
+        // Set the window height to a fixed 600 pixels.
         "SetWindowHeight": {
           "change": {
             "SetFixed": 600
@@ -123,6 +173,7 @@ Example configuration (see: [config.json](./examples/config.json)):
       }
     },
     {
+      "type": "window",
       "match": [
         {
           // Match the app-id org.gnome.Calculator
@@ -141,13 +192,13 @@ Example configuration (see: [config.json](./examples/config.json)):
             "SetFixed": 200
           }
         },
-        // Set the floating window width to a fixed 50.
+        // Set the floating window width to a fixed 50 pixels.
         "SetWindowWidth": {
           "change": {
             "SetFixed": 50
           }
         },
-        // Set the floating window height to a fixed 50.
+        // Set the floating window height to a fixed 50 pixels.
         "SetWindowHeight": {
           "change": {
             "SetFixed": 50
@@ -159,16 +210,22 @@ Example configuration (see: [config.json](./examples/config.json)):
 }
 ```
 
-The rules are the same as the `window-rule` in Niri configuration. Match the window on a given title or app-id.
+- Added in v0.2.0: Rule type - The new rule type defines if the rule should apply to a window or a workspace.
+
+The rules are the same as the `window-rule` in Niri configuration. Currently we only match the window on a given title or app-id.
 Then specify which action you want to do with the matched window. In the example above, the gnome calculator
 is matched, then we move the calculator window to floating, move the floating window to a specified x and y coordinate,
 set the window width and height to a fixed amount.
+
+In addition to the window matching, we can match workspaces. The workspaces matches on a given name or output. The actions are performed
+on the matched workspace.
 
 Each action needs to be a separate action. The actions are applied sequentially on the window.
 
 The actions you can use can be found in the [niri ipc documentation](https://yalter.github.io/niri/niri_ipc/enum.Action.html)
 
-_NOTE_: Currently only `WindowsChanged`, `WindowOpenedOrChanged` and `WindowClosed` events are watched.
+_NOTE_: Currently only `WindowsChanged`, `WindowOpenedOrChanged` and `WindowClosed` window events are watched. For workspaces, the
+`WorkspacesChanged` event is watched.
 
 Please feel free to open a PR if you have other thoughts what we could do with nirimgr.
 

@@ -3,6 +3,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"regexp"
 )
@@ -55,6 +56,8 @@ type Config struct {
 	//
 	// NOTE: The named workspace must be defined in niri config.
 	ScratchpadWorkspace string `json:"scratchpadWorkspace,omitempty"`
+	// SpawnOrFocus defines the configuration for the spawn-or-focus command.
+	SpawnOrFocus SpawnOrFocus `json:"spawnOrFocus,omitempty"`
 }
 
 // GetRules returns the configured rules.
@@ -64,6 +67,22 @@ func (c *Config) GetRules() []Rule {
 	var rules []Rule
 	rules = append(rules, c.Rules...)
 	return rules
+}
+
+// SpawnOrFocus defines the rules and commands to run for the spawn-or-focus command.
+type SpawnOrFocus struct {
+	Rules []Rule `json:"rules,omitempty"`
+	// Command is the command to spawn for the spawnOrFocus command.
+	Commands map[string][]string `json:"commands,omitempty"`
+}
+
+// Command returns the specified command to run for the given key.
+func (s *SpawnOrFocus) Command(key string) ([]string, error) {
+	command, ok := s.Commands[key]
+	if !ok {
+		return nil, fmt.Errorf("could not read command for %s", key)
+	}
+	return command, nil
 }
 
 // Match is used to match a window.

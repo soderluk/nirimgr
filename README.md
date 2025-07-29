@@ -206,11 +206,55 @@ Example configuration (see: [config.json](./examples/config.json)):
         }
       }
     }
-  ]
+  ],
+  // Added in v0.3.0: Spawn or focus an app.
+  "spawnOrFocus": {
+    // The commands lists the commands you want to run for a specified matching app-id.
+    // Note that the command key should be the app-id, e.g. Slack -> not slack (if slack's app-id is Slack)
+    "commands": {
+      // special-term is a named alacritty window, that we want to run, configure as a key-bind in niri config.
+      // e.g. Mod+Shift+T { spawn "nirimgr" "scratch" "spawn-or-focus" "special-term" }
+      "special-term": [
+        "alacritty",
+        "--class",
+        "special-term",
+        "-e",
+        "zellij",
+        "-l",
+        "default"
+      ],
+      // special-btop is a named alacritty window, that runs btop.
+      // Niri key-bind: Mod+Shift+B { spawn "nirimgr" "scratch" "spawn-or-focus" "special-btop" }
+      "special-btop": ["alacritty", "--class", "special-btop", "-e", "btop"],
+      // Spawn or focus Slack
+      "Slack": ["/usr/bin/slack"],
+      // Spawn or focus deezer.
+      "deezer": ["flatpak", "run", "dev.aunetx.deezer"]
+    },
+    // The rules can either be added as separate matches, but this also works, since we just match the first
+    // window that matches the specified app-id.
+    "rules": {
+      "match": [
+        {
+          "appId": "special-term"
+        },
+        {
+          "appId": "special-btop"
+        },
+        {
+          "appId": "Slack"
+        },
+        {
+          "appId": "deezer"
+        }
+      ]
+    }
+  }
 }
 ```
 
 - Added in v0.2.0: Rule type - The new rule type defines if the rule should apply to a window or a workspace.
+- Added in v0.3.0: spawn-or-focus - The new scratch command supports spawning defined apps, or focusing them if they're already running.
 
 The rules are the same as the `window-rule` in Niri configuration. Currently we only match the window on a given title or app-id.
 Then specify which action you want to do with the matched window. In the example above, the gnome calculator
@@ -234,9 +278,11 @@ Please feel free to open a PR if you have other thoughts what we could do with n
 To use nirimgr, it provides the following CLI-commands:
 
 - `nirimgr events`: The events command starts listening on the niri event-stream.
-- `nirimgr scratch [move|show]`: The scratch command moves a window to the scratchpad workspace, or shows the window (moves the window
+- `nirimgr scratch [move|show|spawn-or-focus [appId]]`: The scratch command moves a window to the scratchpad workspace, or shows the window (moves the window
   to the currently active workspace) from the scratchpad workspace. This command should be configured
-  as a key-bind in niri configuration.
+  as a key-bind in niri configuration.\
+  Added in v0.3.0: the spawn-or-focus command takes as parameter the app-id of the window you want to open/focus.
+  See the configuration `spawnOrFocus` to see how you should configure the apps.
 - `nirimgr list [actions|events]`: The list command will list all the available actions or events, so you don't need to remember them all.
 
 To use the scratchpad with Niri, you need to have a named workspace `scratchpad`, or if you want to configure it,
@@ -264,12 +310,21 @@ binds {
   Mod+Shift+S {
       spawn "nirimgr" "scratch" "show"
   }
+  // Spawn or focus deezer and Slack.
+  Mod+Shift+M {
+    spawn "nirimgr" "scratch" "spawn-or-focus" "deezer"
+  }
+  Mod+Shift+C {
+    spawn "nirimgr" "scratch" "spawn-or-focus" "Slack"
+  }
   ...
 }
 ```
 
 Press `Mod+S` to move the currently focused window to the scratchpad workspace, and `Mod+Shift+S` to
 move it back.
+
+Press `Mod+Shift+C` to spawn Slack, or focus it if it's already open and running.
 
 If you have multiple windows in the scratchpad, the command will move the last window to
 the current workspace (this is pretty much how i3wm did the scratchpad functionality).
@@ -289,15 +344,15 @@ event happens.
 
 The following actions can be performed with the `just` command:
 
-- build: Builds the source into an executable
-- coverage: Opens up the code coverage in the browser
-- fmt: Runs `go fmt` on the project.
-- help: Lists the available recipes. This is the default, if you run `just` without arguments.
-- install: Installs the executable in your GOPATH/bin.
-- run RUNARGS: Runs the module with RUNARGS. If the RUNARGS contains a space, you need to quote them, e.g. `just run "list actions"`
-- test: Runs `go test` on the project.
-- version: Prints the version.
-- vet: Runs `go vet` on the project.
+- `build`: Builds the source into an executable
+- `coverage`: Opens up the code coverage in the browser
+- `fmt`: Runs `go fmt` on the project.
+- `help`: Lists the available recipes. This is the default, if you run `just` without arguments.
+- `install`: Installs the executable in your GOPATH/bin.
+- `run RUNARGS`: Runs the module with RUNARGS. If the RUNARGS contains a space, you need to quote them, e.g. `just run "list actions"`
+- `test`: Runs `go test` on the project.
+- `version`: Prints the version.
+- `vet`: Runs `go vet` on the project.
 
 # Acknowledgements
 
@@ -308,7 +363,11 @@ the most notable being [niri-float-sticky](https://github.com/probeldev/niri-flo
 
 The goroutine handling of the event stream felt like a better approach than I had before, so thanks to the author for a great library!
 
+The `nirimgr scratch spawn-or-focus [app-id]` is heavily inspired by the discussion [here](https://github.com/YaLTeR/niri/discussions/329#discussioncomment-13378697)
+
 # Known issues
+
+**_Note_**: The below has been worked around by manually focusing the moved window.
 
 There seems to be an [issue](https://github.com/YaLTeR/niri/issues/1805) with niri that it doesn't respect the `focus true/false` when moving a window.
 And here's the [PR](https://github.com/YaLTeR/niri/pull/1820) to fix it (as of now, it hasn't been yet merged.)

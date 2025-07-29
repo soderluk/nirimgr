@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/soderluk/nirimgr/actions"
 	"github.com/soderluk/nirimgr/config"
@@ -20,8 +21,12 @@ import (
 // or move the currently focused window to scratchpad.
 var scratchCmd = &cobra.Command{
 	Use:   "scratch",
-	Short: "Some kind of support for a scratchpad in niri.",
-	Args:  cobra.MinimumNArgs(1),
+	Short: "Simple support for a scratchpad in Niri",
+	Long: `An i3wm inspired simple scratchpad functionality for Niri.
+		nirimgr scratch move - moves the currently focused window to the scratchpad workspace.
+		nirimgr scratch show - moves the last window in the scratchpad workspace to the currently focused workspace.
+		nirimgr scratch spawn-or-focus app-id - Spawns the specified app or focuses it if it's already running. Requires configuration for the commands and app IDs.`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		command := args[0]
 		switch command {
@@ -29,6 +34,8 @@ var scratchCmd = &cobra.Command{
 			moveToScratchpad()
 		case "show":
 			showScratchpad()
+		case "spawn-or-focus":
+			spawnOrFocus(args[1])
 		default:
 			slog.Error("Unknown command", "cmd", command)
 			os.Exit(1)
@@ -84,13 +91,8 @@ func showScratchpad() {
 	scratchpad, _ := getWorkspace(config.Config.ScratchpadWorkspace)
 	focusedWorkspace, _ := getWorkspace("focused")
 
-	response, _ := connection.PerformRequest(models.Windows)
-
-	resp := <-response
-
-	var windows []*models.Window
-
-	if err := json.Unmarshal(resp.Ok["Windows"], &windows); err != nil {
+	windows, err := connection.ListWindows()
+	if err != nil {
 		slog.Error("Could not unmarshal windows", "error", err.Error())
 		os.Exit(1)
 	}
@@ -124,19 +126,56 @@ func showScratchpad() {
 	}
 }
 
+// spawnOrFocus will spawn a specified window or focus it if it's already open.
+//
+// This is heavily inspired by the discussion over here: https://github.com/YaLTeR/niri/discussions/329#discussioncomment-13378697
+// I adapted the functionality to be supported in nirimgr. The commands and app id's are configurable in the config.json.
+func spawnOrFocus(arg string) {
+	windows, err := connection.ListWindows()
+	if err != nil {
+		slog.Error("Could not list windows", "error", err.Error())
+		os.Exit(1)
+	}
+
+	var matchedWindow *models.Window
+	command, err := config.Config.SpawnOrFocus.Command(arg)
+	if err != nil {
+		slog.Error("Could not get command", "error", err.Error())
+		os.Exit(1)
+	}
+	for _, window := range windows {
+		for _, rule := range config.Config.SpawnOrFocus.Rules {
+			if rule.WindowMatches(*window) {
+				slog.Debug("Trying window", "appId", window.AppID)
+				// If the app id doesn't contain the given argument, skip this window.
+				if !strings.Contains(window.AppID, arg) {
+					continue
+				}
+				slog.Debug("Window matches rule", "window", window.AppID, "rule", rule)
+				matchedWindow = window
+				break
+			}
+		}
+	}
+	if matchedWindow != nil {
+		slog.Debug("matched window", "window", matchedWindow.Title)
+		if matchedWindow.IsFocused {
+			connection.PerformAction(actions.FocusWindowPrevious{AName: actions.AName{Name: "FocusWindowPrevious"}})
+		} else {
+			connection.PerformAction(actions.FocusWindow{AName: actions.AName{Name: "FocusWindow"}, ID: matchedWindow.ID})
+		}
+	} else {
+		slog.Debug("Didn't match any window, spawning command", "cmd", command)
+		connection.PerformAction(actions.Spawn{AName: actions.AName{Name: "Spawn"}, Command: command})
+	}
+}
+
 // getWorkspace returns a workspace.
 //
 // Given the wtype, we return either the named workspace, focused or active workspace.
 func getWorkspace(wtype string) (*models.Workspace, error) {
-	response, err := connection.PerformRequest(models.Workspaces)
+	workspaces, err := connection.ListWorkspaces()
 	if err != nil {
-		return nil, err
-	}
-
-	resp := <-response
-
-	var workspaces []*models.Workspace
-	if err := json.Unmarshal(resp.Ok["Workspaces"], &workspaces); err != nil {
 		return nil, err
 	}
 

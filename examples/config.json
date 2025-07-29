@@ -80,5 +80,37 @@
         }
       }
     }
-  ]
+  ],
+  "spawnOrFocus": {
+    "commands": {
+      "special-term": [
+        "alacritty",
+        "--class",
+        "special-term",
+        "-e",
+        "zellij",
+        "-l",
+        "default"
+      ],
+      "special-btop": ["alacritty", "--class", "special-btop", "-e", "btop"],
+      "Slack": ["/usr/bin/slack"],
+      "deezer": ["flatpak", "run", "dev.aunetx.deezer"]
+    },
+    "rules": {
+      "match": [
+        {
+          "appId": "special-term"
+        },
+        {
+          "appId": "special-btop"
+        },
+        {
+          "appId": "Slack"
+        },
+        {
+          "appId": "deezer"
+        }
+      ]
+    }
+  }
 }

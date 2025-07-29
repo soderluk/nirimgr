@@ -18,8 +18,10 @@
 //
 // The scratch is the command to move a window to the scratchpad workspace,
 // or show a window from the scratchpad workspace.
+// Added in v0.3.0: spawn-or-focus [app-id]
+// Using the spawn-or-focus [app-id] will either spawn a specific app, or focus it if it's already open.
 //
-//	Usage: nirimgr scratch [move|show]
+//	Usage: nirimgr scratch [move|show|spawn-or-focus [app-id]]
 package cmd
 
 import (

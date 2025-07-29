@@ -155,6 +155,37 @@ func PerformRequest(req models.NiriRequest) (<-chan models.Response, error) {
 	return stream, nil
 }
 
+// ListWindows returns the current list of windows from Niri IPC.
+func ListWindows() ([]*models.Window, error) {
+	response, _ := PerformRequest(models.Windows)
+
+	resp := <-response
+
+	var windows []*models.Window
+
+	if err := json.Unmarshal(resp.Ok["Windows"], &windows); err != nil {
+		return nil, fmt.Errorf("could not unmarshal windows")
+	}
+	return windows, nil
+}
+
+// ListWorkspaces returns the current list of workspaces from Niri IPC.
+func ListWorkspaces() ([]*models.Workspace, error) {
+	response, err := PerformRequest(models.Workspaces)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := <-response
+
+	var workspaces []*models.Workspace
+	if err := json.Unmarshal(resp.Ok["Workspaces"], &workspaces); err != nil {
+		return nil, err
+	}
+
+	return workspaces, nil
+}
+
 // structToMap converts a go struct to a map.
 func structToMap(a any) (map[string]any, error) {
 	var m map[string]any

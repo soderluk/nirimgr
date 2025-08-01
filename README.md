@@ -249,12 +249,18 @@ Example configuration (see: [config.json](./examples/config.json)):
         }
       ]
     }
+  },
+  // Configure actions to be run on the scratchpad window that was shown.
+  "showScratchpadActions": {
+    // Always center the shown scratchpad window.
+    "CenterWindow": {}
   }
 }
 ```
 
-- Added in v0.2.0: Rule type - The new rule type defines if the rule should apply to a window or a workspace.
-- Added in v0.3.0: spawn-or-focus - The new scratch command supports spawning defined apps, or focusing them if they're already running.
+- Added in v0.2.0: Configuration: Rule type - The new rule type defines if the rule should apply to a window or a workspace.
+- Added in v0.3.0: Scratch command: spawn-or-focus - The new scratch command supports spawning defined apps, or focusing them if they're already running.
+- Added in v0.4.0: Configuration: Add new configuration showScratchpadActions, i.e. define actions to be performed on the shown scratchpad window.
 
 The rules are the same as the `window-rule` in Niri configuration. Currently we only match the window on a given title or app-id.
 Then specify which action you want to do with the matched window. In the example above, the gnome calculator

@@ -58,6 +58,11 @@ type Config struct {
 	ScratchpadWorkspace string `json:"scratchpadWorkspace,omitempty"`
 	// SpawnOrFocus defines the configuration for the spawn-or-focus command.
 	SpawnOrFocus SpawnOrFocus `json:"spawnOrFocus,omitempty"`
+	// ShowScratchpadActions lists actions that should be performed on the shown scratchpad window.
+	//
+	// The `scratch show` command will always run MoveWindowToWorkspace and FocusWindow, but in addition can perform the following actions,
+	// e.g. if you want to center the window or resize it or something.
+	ShowScratchpadActions map[string]json.RawMessage `json:"showScratchpadActions,omitempty"`
 }
 
 // GetRules returns the configured rules.

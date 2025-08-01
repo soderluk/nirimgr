@@ -120,6 +120,17 @@ func showScratchpad() {
 			},
 		}
 
+		// If we have actions, append them to the list.
+		if len(config.Config.ShowScratchpadActions) > 0 {
+			for _, action := range actions.ParseRawActions(config.Config.ShowScratchpadActions) {
+				a := actions.HandleDynamicIDs(action, models.PossibleKeys{
+					ID:       window.ID,
+					WindowID: window.ID,
+				})
+				actionList = append(actionList, a)
+			}
+		}
+
 		for _, action := range actionList {
 			connection.PerformAction(action)
 		}

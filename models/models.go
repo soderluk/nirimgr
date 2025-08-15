@@ -63,6 +63,8 @@ type Config struct {
 	// The `scratch show` command will always run MoveWindowToWorkspace and FocusWindow, but in addition can perform the following actions,
 	// e.g. if you want to center the window or resize it or something.
 	ShowScratchpadActions map[string]json.RawMessage `json:"showScratchpadActions,omitempty"`
+	// Events contains the event types to listen to, and the actions to run on the specified event.
+	Events map[string]map[string]json.RawMessage `json:"events,omitempty"`
 }
 
 // GetRules returns the configured rules.

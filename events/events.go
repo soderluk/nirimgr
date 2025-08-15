@@ -164,9 +164,8 @@ func matchWindowAndPerformActions(window *models.Window, existingWindows map[uin
 			break
 		}
 	}
-	actionList := actions.ParseRawActions(rawActions)
 	if window.Matched && !matchedBefore {
-		for _, a := range actionList {
+		for _, a := range ActionsFromRaw(rawActions) {
 			// Set the action IDs dynamically here.
 			a = actions.HandleDynamicIDs(a, models.PossibleKeys{
 				ID:       window.ID,
@@ -201,9 +200,8 @@ func matchWorkspaceAndPerformActions(workspace *models.Workspace, existingWorksp
 			break
 		}
 	}
-	actionList := actions.ParseRawActions(rawActions)
 	if workspace.Matched && !matchedBefore {
-		for _, a := range actionList {
+		for _, a := range ActionsFromRaw(rawActions) {
 			// Set the Action IDs dynamically here.
 			// Note that for the reference, only one is actually applied, in the order:
 			// ID, Index, Name.
@@ -220,6 +218,11 @@ func matchWorkspaceAndPerformActions(workspace *models.Workspace, existingWorksp
 			connection.PerformAction(a)
 		}
 	}
+}
+
+// ActionsFromRaw converts the raw actions from the config into a list of Action structs.
+func ActionsFromRaw(rawActions map[string]json.RawMessage) []actions.Action {
+	return actions.ParseRawActions(rawActions)
 }
 
 // FromRegistry returns the populated model from the EventRegistry by given name.

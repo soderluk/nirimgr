@@ -115,5 +115,11 @@
   },
   "showScratchpadActions": {
     "CenterWindow": {}
+  },
+  "events": {
+    "WindowUrgencyChanged": {
+      "FocusWindow": {},
+      "UnsetWindowUrgent": {}
+    }
   }
 }

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/expr-lang/expr"
 	"github.com/soderluk/nirimgr/actions"
 	"github.com/soderluk/nirimgr/config"
 	"github.com/soderluk/nirimgr/internal/common"
@@ -72,11 +73,25 @@ func Run() {
 			// Any events we're not specifically listening to, let's check if there are any configured events.
 			if ev != nil {
 				// Handle the event if it exists in the map
-				if rawActions, exists := listenToEvents[ev.GetName()]; exists {
-					// Perform each defined action on the event.
-					for _, a := range ActionsFromRaw(rawActions) {
-						a = actions.HandleDynamicIDs(a, ev.GetPossibleKeys())
-						connection.PerformAction(a)
+				if acts, exists := listenToEvents[ev.GetName()]; exists {
+					for actionName, actionConfig := range acts {
+						rawAction := map[string]json.RawMessage{
+							actionName: actionConfig.Params,
+						}
+						// Perform each defined action on the event.
+						for _, a := range ActionsFromRaw(rawAction) {
+							evaluationResult, err := EvaluateCondition(actionConfig.When, ev)
+							if err != nil {
+								slog.Error("Error in EvaluateCondition", slog.Any("error", err))
+							}
+							if evaluationResult {
+								possibleKeys := ev.GetPossibleKeys()
+								a = actions.HandleDynamicIDs(a, possibleKeys)
+								connection.PerformAction(a)
+							} else {
+								slog.Debug("Not doing action", slog.String("name", actionName), slog.Bool("EvaluateCondition", evaluationResult))
+							}
+						}
 					}
 				}
 			}
@@ -238,6 +253,38 @@ func FromRegistry(name string, data []byte) Event {
 		return nil
 	}
 	return event
+}
+
+// EvaluateCondition evaluates the given condition on the given event.
+//
+// If the event is a "WindowUrgencyChanged" event, we know that it has a field called Urgent, so
+// the condition could be "event.Urgent == true" to run an action only when the event urgency is set.
+func EvaluateCondition(condition string, event Event) (bool, error) {
+	slog.Debug("EvaluateCondition", slog.String("condition", condition))
+	// We always evaluate empty conditions to true.
+	if condition == "" {
+		return true, nil
+	}
+
+	env := map[string]any{
+		"event": event,
+	}
+	slog.Debug("EvaluateCondition", slog.Any("event", event))
+	program, err := expr.Compile(condition, expr.Env(env))
+	if err != nil {
+		return false, fmt.Errorf("invalid condition '%s': %w", condition, err)
+	}
+	result, err := expr.Run(program, env)
+	if err != nil {
+		return false, fmt.Errorf("error evaluating condition '%s': %w", condition, err)
+	}
+
+	boolResult, ok := result.(bool)
+	if !ok {
+		return false, fmt.Errorf("condition '%s' didn't evaluate to a boolean", condition)
+	}
+
+	return boolResult, nil
 }
 
 // EventRegistry contains all the events Niri currently sends.

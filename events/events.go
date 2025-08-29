@@ -32,7 +32,11 @@ func Run() {
 	existingWindows := make(map[uint64]*models.Window)
 	existingWorkspaces := make(map[uint64]*models.Workspace)
 
+	// Any events we want to specifically listen to and perform actions on the event Window/Workspace/whatever.
+	listenToEvents := config.Config.Events
+
 	for event := range events {
+		// These events are specific for the matching logic of nirimgr.
 		switch ev := event.(type) {
 		case *WindowsChanged:
 			slog.Debug("Handling event", "name", common.Repr(ev))
@@ -65,6 +69,17 @@ func Run() {
 				existingWorkspaces[workspace.ID] = workspace
 			}
 		default:
+			// Any events we're not specifically listening to, let's check if there are any configured events.
+			if ev != nil {
+				// Handle the event if it exists in the map
+				if rawActions, exists := listenToEvents[ev.GetName()]; exists {
+					// Perform each defined action on the event.
+					for _, a := range ActionsFromRaw(rawActions) {
+						a = actions.HandleDynamicIDs(a, ev.GetPossibleKeys())
+						connection.PerformAction(a)
+					}
+				}
+			}
 		}
 	}
 }
@@ -73,8 +88,8 @@ func Run() {
 //
 // The function will use a goroutine to return the event models.
 // Inspiration from: https://github.com/probeldev/niri-float-sticky
-func EventStream() (<-chan any, error) {
-	stream := make(chan any)
+func EventStream() (<-chan Event, error) {
+	stream := make(chan Event)
 	socket := connection.Socket()
 
 	go func() {
@@ -111,7 +126,7 @@ func EventStream() (<-chan any, error) {
 // ParseEvent parses the given event into it's struct.
 //
 // Returns the name, model, error. The name is the name of the event, model is the populated struct.
-func ParseEvent(event map[string]json.RawMessage) (string, any, error) {
+func ParseEvent(event map[string]json.RawMessage) (string, Event, error) {
 	for name, raw := range event {
 		model := FromRegistry(name, raw)
 		if model == nil {
@@ -149,9 +164,8 @@ func matchWindowAndPerformActions(window *models.Window, existingWindows map[uin
 			break
 		}
 	}
-	actionList := actions.ParseRawActions(rawActions)
 	if window.Matched && !matchedBefore {
-		for _, a := range actionList {
+		for _, a := range ActionsFromRaw(rawActions) {
 			// Set the action IDs dynamically here.
 			a = actions.HandleDynamicIDs(a, models.PossibleKeys{
 				ID:       window.ID,
@@ -186,9 +200,8 @@ func matchWorkspaceAndPerformActions(workspace *models.Workspace, existingWorksp
 			break
 		}
 	}
-	actionList := actions.ParseRawActions(rawActions)
 	if workspace.Matched && !matchedBefore {
-		for _, a := range actionList {
+		for _, a := range ActionsFromRaw(rawActions) {
 			// Set the Action IDs dynamically here.
 			// Note that for the reference, only one is actually applied, in the order:
 			// ID, Index, Name.
@@ -205,6 +218,11 @@ func matchWorkspaceAndPerformActions(workspace *models.Workspace, existingWorksp
 			connection.PerformAction(a)
 		}
 	}
+}
+
+// ActionsFromRaw converts the raw actions from the config into a list of Action structs.
+func ActionsFromRaw(rawActions map[string]json.RawMessage) []actions.Action {
+	return actions.ParseRawActions(rawActions)
 }
 
 // FromRegistry returns the populated model from the EventRegistry by given name.

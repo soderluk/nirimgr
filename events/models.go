@@ -1,6 +1,8 @@
 package events
 
-import "github.com/soderluk/nirimgr/models"
+import (
+	"github.com/soderluk/nirimgr/models"
+)
 
 // If more events are added in Niri, we must define them here, and add them to the EventRegistry.
 
@@ -9,6 +11,7 @@ import "github.com/soderluk/nirimgr/models"
 // NOTE: We have to use GetName, since the field is called Name.
 type Event interface {
 	GetName() string
+	GetPossibleKeys() models.PossibleKeys
 }
 
 // EName defines the name of the event.
@@ -19,6 +22,14 @@ type EName struct {
 // GetName returns the event name.
 func (e EName) GetName() string {
 	return e.Name
+}
+
+// GetPossibleKeys extracts relevant IDs and fields from any event.
+// This is a default implementation that should work for most events.
+func (e EName) GetPossibleKeys() models.PossibleKeys {
+	// This default implementation returns empty keys since EName itself has no useful fields
+	// Individual event types can override this method if they have specific fields to extract
+	return models.PossibleKeys{}
 }
 
 // WorkspacesChanged when the workspace configuration has changed.
@@ -40,6 +51,14 @@ type WorkspaceUrgencyChanged struct {
 	Urgent bool `json:"urgent"`
 }
 
+// GetPossibleKeys extracts the workspace ID from this event.
+func (w WorkspaceUrgencyChanged) GetPossibleKeys() models.PossibleKeys {
+	return models.PossibleKeys{
+		ID:          w.ID,
+		WorkspaceID: w.ID,
+	}
+}
+
 // WorkspaceActivated when a workspace was activated on an output.
 type WorkspaceActivated struct {
 	EName
@@ -52,6 +71,14 @@ type WorkspaceActivated struct {
 	Focused bool `json:"focused"`
 }
 
+// GetPossibleKeys extracts the workspace ID from this event.
+func (w WorkspaceActivated) GetPossibleKeys() models.PossibleKeys {
+	return models.PossibleKeys{
+		ID:          w.ID,
+		WorkspaceID: w.ID,
+	}
+}
+
 // WorkspaceActiveWindowChanged when an active window changed on a workspace.
 type WorkspaceActiveWindowChanged struct {
 	EName
@@ -59,6 +86,14 @@ type WorkspaceActiveWindowChanged struct {
 	WorkspaceID uint64 `json:"workspace_id"`
 	// ActiveWindowID the ID of the new active window, if any.
 	ActiveWindowID uint64 `json:"active_window_id"`
+}
+
+// GetPossibleKeys extracts the workspace and window IDs from this event.
+func (w WorkspaceActiveWindowChanged) GetPossibleKeys() models.PossibleKeys {
+	return models.PossibleKeys{
+		WorkspaceID:    w.WorkspaceID,
+		ActiveWindowID: w.ActiveWindowID,
+	}
 }
 
 // WindowsChanged when the window configuration has changed.
@@ -87,6 +122,14 @@ type WindowClosed struct {
 	ID uint64 `json:"id"`
 }
 
+// GetPossibleKeys extracts the window ID from this event.
+func (w WindowClosed) GetPossibleKeys() models.PossibleKeys {
+	return models.PossibleKeys{
+		ID:       w.ID,
+		WindowID: w.ID,
+	}
+}
+
 // WindowFocusChanged when a window focus changed.
 //
 // All other windows are no longer focused.
@@ -96,6 +139,14 @@ type WindowFocusChanged struct {
 	ID uint64 `json:"id"`
 }
 
+// GetPossibleKeys extracts the window ID from this event.
+func (w WindowFocusChanged) GetPossibleKeys() models.PossibleKeys {
+	return models.PossibleKeys{
+		ID:       w.ID,
+		WindowID: w.ID,
+	}
+}
+
 // WindowUrgencyChanged when a window urgency changed.
 type WindowUrgencyChanged struct {
 	EName
@@ -103,6 +154,14 @@ type WindowUrgencyChanged struct {
 	ID uint64 `json:"id"`
 	// Urgent the new urgency state of the window.
 	Urgent bool `json:"urgent"`
+}
+
+// GetPossibleKeys extracts the window ID from this event.
+func (w WindowUrgencyChanged) GetPossibleKeys() models.PossibleKeys {
+	return models.PossibleKeys{
+		ID:       w.ID,
+		WindowID: w.ID,
+	}
 }
 
 // KeyboardLayoutsChanged when the configured keyboard layouts have changed.
@@ -117,6 +176,13 @@ type KeyboardLayoutSwitched struct {
 	EName
 	// Idx contains the index of the newly active layout.
 	Idx uint8 `json:"idx"`
+}
+
+// GetPossibleKeys extracts the layout index from this event.
+func (k KeyboardLayoutSwitched) GetPossibleKeys() models.PossibleKeys {
+	return models.PossibleKeys{
+		Index: k.Idx,
+	}
 }
 
 // OverviewOpenedOrClosed when the overview was opened or closed.

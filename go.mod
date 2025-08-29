@@ -1,6 +1,6 @@
 module github.com/soderluk/nirimgr
 
-go 1.23.5
+go 1.24.6
 
 require (
 	github.com/olekukonko/tablewriter v1.0.8

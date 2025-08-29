@@ -21,6 +21,7 @@ import (
 	"log/slog"
 	"reflect"
 
+	"github.com/soderluk/nirimgr/internal/common"
 	"github.com/soderluk/nirimgr/models"
 )
 
@@ -37,56 +38,32 @@ func HandleDynamicIDs(a Action, possibleKeys models.PossibleKeys) Action {
 		value = value.Elem()
 	}
 
-	// Helper to set a uint64 field if present.
-	setUintField := func(field reflect.Value, fieldName string, val any) {
-		f := field.FieldByName(fieldName)
-		if f.IsValid() && f.CanSet() {
-			slog.Debug("Dynamically setting uint field", "field", fieldName, "value", val)
-			switch f.Kind() {
-			case reflect.Uint8:
-				f.SetUint(uint64(val.(uint8)))
-			case reflect.Uint64:
-				f.SetUint(uint64(val.(uint64)))
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				f.SetInt(int64(val.(int64)))
-			}
-		}
-	}
-	// Helper to set a string field if present.
-	setStringField := func(field reflect.Value, fieldName string, val string) {
-		f := field.FieldByName(fieldName)
-		if f.IsValid() && f.CanSet() && f.Kind() == reflect.String {
-			slog.Debug("Dynamically setting string field", "field", fieldName, "value", val)
-			f.SetString(val)
-		}
-	}
-
 	// Set direct fields if present
 	if possibleKeys.ID != 0 {
-		setUintField(value, "ID", possibleKeys.ID)
+		common.SetUintField(value, "ID", possibleKeys.ID)
 	}
 	if possibleKeys.WindowID != 0 {
-		setUintField(value, "WindowID", possibleKeys.WindowID)
+		common.SetUintField(value, "WindowID", possibleKeys.WindowID)
 	}
 	if possibleKeys.ActiveWindowID != 0 {
-		setUintField(value, "ActiveWindowID", possibleKeys.ActiveWindowID)
+		common.SetUintField(value, "ActiveWindowID", possibleKeys.ActiveWindowID)
 	}
 	if possibleKeys.WorkspaceID != 0 {
-		setUintField(value, "WorkspaceID", possibleKeys.WorkspaceID)
+		common.SetUintField(value, "WorkspaceID", possibleKeys.WorkspaceID)
 	}
 	if possibleKeys.Index != 0 {
-		setUintField(value, "Index", possibleKeys.Index)
+		common.SetUintField(value, "Index", possibleKeys.Index)
 	}
 
 	// Handle Reference struct if present
 	referenceField := value.FieldByName("Reference")
 	if referenceField.IsValid() && referenceField.CanSet() && referenceField.Kind() == reflect.Struct {
 		if possibleKeys.Reference.ID != 0 {
-			setUintField(referenceField, "ID", possibleKeys.Reference.ID)
+			common.SetUintField(referenceField, "ID", possibleKeys.Reference.ID)
 		} else if possibleKeys.Reference.Index != 0 {
-			setUintField(referenceField, "Index", possibleKeys.Reference.Index)
+			common.SetUintField(referenceField, "Index", possibleKeys.Reference.Index)
 		} else if possibleKeys.Reference.Name != "" {
-			setStringField(referenceField, "Name", possibleKeys.Reference.Name)
+			common.SetStringField(referenceField, "Name", possibleKeys.Reference.Name)
 		}
 	}
 	return a

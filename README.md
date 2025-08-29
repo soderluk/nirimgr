@@ -254,6 +254,16 @@ Example configuration (see: [config.json](./examples/config.json)):
   "showScratchpadActions": {
     // Always center the shown scratchpad window.
     "CenterWindow": {}
+  },
+  // Configure any custom events you want to listen to here.
+  "events": {
+    // The event name to listen to.
+    "WindowUrgencyChanged": {
+      // Any actions you want to do when the event happens.
+      // In this example, when a WindowUrgencyChanged event happens, we want to focus the urgent window, and unset the window urgency.
+      "FocusWindow": {},
+      "UnsetWindowUrgent": {}
+    }
   }
 }
 ```
@@ -261,6 +271,7 @@ Example configuration (see: [config.json](./examples/config.json)):
 - Added in v0.2.0: Configuration: Rule type - The new rule type defines if the rule should apply to a window or a workspace.
 - Added in v0.3.0: Scratch command: spawn-or-focus - The new scratch command supports spawning defined apps, or focusing them if they're already running.
 - Added in v0.4.0: Configuration: Add new configuration showScratchpadActions, i.e. define actions to be performed on the shown scratchpad window.
+- Added in v0.5.0: Listen on custom events and perform actions on the event target, such as window/workspace.
 
 The rules are the same as the `window-rule` in Niri configuration. Currently we only match the window on a given title or app-id.
 Then specify which action you want to do with the matched window. In the example above, the gnome calculator
@@ -276,6 +287,12 @@ The actions you can use can be found in the [niri ipc documentation](https://yal
 
 _NOTE_: Currently only `WindowsChanged`, `WindowOpenedOrChanged` and `WindowClosed` window events are watched. For workspaces, the
 `WorkspacesChanged` event is watched.
+
+Since v0.5.0 you can listen to specified events, and perform actions on them. As an example, you can listen to the `WindowUrgencyChanged` event,
+focus the urgent window, and unset the window urgency.
+
+_NOTE_: This addition is just a simple _listen to this event and perform that action on the target_, i.e. there are no conditions that can be applied to
+the action. E.g. Only focus the window if the `WindowUrgencyChanged` sets the urgency to `true`. The focus will also happen when the urgency is set to `false`.
 
 Please feel free to open a PR if you have other thoughts what we could do with nirimgr.
 

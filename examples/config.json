@@ -1,125 +1,135 @@
 {
-  "scratchpadWorkspace": "scratchpad",
-  "logLevel": "DEBUG",
-  "rules": [
-    {
-      "type": "workspace",
-      "match": [
+    "scratchpadWorkspace": "scratchpad",
+    "logLevel": "DEBUG",
+    "rules": [
         {
-          "name": "chat"
-        }
-      ],
-      "actions": {
-        "FocusWorkspace": {},
-        "MoveWorkspaceToMonitor": {
-          "output": "eDP-1"
-        }
-      }
-    },
-    {
-      "type": "workspace",
-      "match": [
-        {
-          "name": "work",
-          "output": "eDP-1"
-        }
-      ],
-      "actions": {
-        "FocusWorkspace": {},
-        "MoveWorkspaceToMonitorRight": {}
-      }
-    },
-    {
-      "type": "window",
-      "match": [
-        {
-          "title": "Bitwarden",
-          "appId": "zen"
-        }
-      ],
-      "actions": {
-        "MoveWindowToFloating": {},
-        "SetWindowWidth": {
-          "change": {
-            "SetFixed": 400
-          }
+            "type": "workspace",
+            "match": [
+                {
+                    "name": "chat"
+                }
+            ],
+            "actions": {
+                "FocusWorkspace": {},
+                "MoveWorkspaceToMonitor": {
+                    "output": "eDP-1"
+                }
+            }
         },
-        "SetWindowHeight": {
-          "change": {
-            "SetFixed": 600
-          }
-        }
-      }
-    },
-    {
-      "type": "window",
-      "match": [
         {
-          "appId": "org.gnome.Calculator"
-        }
-      ],
-      "actions": {
-        "MoveWindowToFloating": {},
-        "MoveFloatingWindow": {
-          "x": {
-            "SetFixed": 800
-          },
-          "y": {
-            "SetFixed": 200
-          }
+            "type": "workspace",
+            "match": [
+                {
+                    "name": "work",
+                    "output": "eDP-1"
+                }
+            ],
+            "actions": {
+                "FocusWorkspace": {},
+                "MoveWorkspaceToMonitorRight": {}
+            }
         },
-        "SetWindowWidth": {
-          "change": {
-            "SetFixed": 50
-          }
+        {
+            "type": "window",
+            "match": [
+                {
+                    "title": "Bitwarden",
+                    "appId": "zen"
+                }
+            ],
+            "actions": {
+                "MoveWindowToFloating": {},
+                "SetWindowWidth": {
+                    "change": {
+                        "SetFixed": 400
+                    }
+                },
+                "SetWindowHeight": {
+                    "change": {
+                        "SetFixed": 600
+                    }
+                }
+            }
         },
-        "SetWindowHeight": {
-          "change": {
-            "SetFixed": 50
-          }
+        {
+            "type": "window",
+            "match": [
+                {
+                    "appId": "org.gnome.Calculator"
+                }
+            ],
+            "actions": {
+                "MoveWindowToFloating": {},
+                "MoveFloatingWindow": {
+                    "x": {
+                        "SetFixed": 800
+                    },
+                    "y": {
+                        "SetFixed": 200
+                    }
+                },
+                "SetWindowWidth": {
+                    "change": {
+                        "SetFixed": 50
+                    }
+                },
+                "SetWindowHeight": {
+                    "change": {
+                        "SetFixed": 50
+                    }
+                }
+            }
         }
-      }
+    ],
+    "spawnOrFocus": {
+        "commands": {
+            "special-term": [
+                "alacritty",
+                "--class",
+                "special-term",
+                "-e",
+                "zellij",
+                "-l",
+                "default"
+            ],
+            "special-btop": [
+                "alacritty",
+                "--class",
+                "special-btop",
+                "-e",
+                "btop"
+            ],
+            "Slack": ["/usr/bin/slack"],
+            "deezer": ["flatpak", "run", "dev.aunetx.deezer"]
+        },
+        "rules": {
+            "match": [
+                {
+                    "appId": "special-term"
+                },
+                {
+                    "appId": "special-btop"
+                },
+                {
+                    "appId": "Slack"
+                },
+                {
+                    "appId": "deezer"
+                }
+            ]
+        }
+    },
+    "showScratchpadActions": {
+        "CenterWindow": {}
+    },
+    "events": {
+        "WindowUrgencyChanged": {
+            "FocusWindow": {
+                "when": "event.Urgent == true"
+            },
+            "UnsetWindowUrgent": {
+                "when": "event.Urgent == true"
+            }
+        }
     }
-  ],
-  "spawnOrFocus": {
-    "commands": {
-      "special-term": [
-        "alacritty",
-        "--class",
-        "special-term",
-        "-e",
-        "zellij",
-        "-l",
-        "default"
-      ],
-      "special-btop": ["alacritty", "--class", "special-btop", "-e", "btop"],
-      "Slack": ["/usr/bin/slack"],
-      "deezer": ["flatpak", "run", "dev.aunetx.deezer"]
-    },
-    "rules": {
-      "match": [
-        {
-          "appId": "special-term"
-        },
-        {
-          "appId": "special-btop"
-        },
-        {
-          "appId": "Slack"
-        },
-        {
-          "appId": "deezer"
-        }
-      ]
-    }
-  },
-  "showScratchpadActions": {
-    "CenterWindow": {}
-  },
-  "events": {
-    "WindowUrgencyChanged": {
-      "FocusWindow": {},
-      "UnsetWindowUrgent": {}
-    }
-  }
 }

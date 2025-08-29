@@ -261,7 +261,11 @@ Example configuration (see: [config.json](./examples/config.json)):
     "WindowUrgencyChanged": {
       // Any actions you want to do when the event happens.
       // In this example, when a WindowUrgencyChanged event happens, we want to focus the urgent window, and unset the window urgency.
-      "FocusWindow": {},
+      "FocusWindow": {
+        // Only focus the window if the event's urgent field is true.
+        // If the window urgency is unset, we won't focus the window.
+        "when": "event.Urgent == true"
+      },
       "UnsetWindowUrgent": {}
     }
   }
@@ -272,6 +276,8 @@ Example configuration (see: [config.json](./examples/config.json)):
 - Added in v0.3.0: Scratch command: spawn-or-focus - The new scratch command supports spawning defined apps, or focusing them if they're already running.
 - Added in v0.4.0: Configuration: Add new configuration showScratchpadActions, i.e. define actions to be performed on the shown scratchpad window.
 - Added in v0.5.0: Listen on custom events and perform actions on the event target, such as window/workspace.
+- Added in v0.6.0: Conditional actions: In the custom events configuration, we can now add a "when" condition to the action, and run the action only if the condition
+  evaluates to true.
 
 The rules are the same as the `window-rule` in Niri configuration. Currently we only match the window on a given title or app-id.
 Then specify which action you want to do with the matched window. In the example above, the gnome calculator
@@ -293,6 +299,9 @@ focus the urgent window, and unset the window urgency.
 
 _NOTE_: This addition is just a simple _listen to this event and perform that action on the target_, i.e. there are no conditions that can be applied to
 the action. E.g. Only focus the window if the `WindowUrgencyChanged` sets the urgency to `true`. The focus will also happen when the urgency is set to `false`.
+
+Since v0.6.0 you can add a condition to the custom events' actions. I.e. perform the action only when the "when"-condition evaluates to true.
+We use the [expr-lang](https://expr-lang.org/docs/getting-started) to evaluate the expression. You can see the supported conditions [here](https://expr-lang.org/docs/language-definition).
 
 Please feel free to open a PR if you have other thoughts what we could do with nirimgr.
 

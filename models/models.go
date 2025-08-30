@@ -46,6 +46,72 @@ const (
 	OverviewState NiriRequest = "OverviewState"
 )
 
+// ActionConfig adds support for conditionally run the action.
+//
+// The "when" field uses the expr module to evaluate the expression, and
+// returns a boolean for the condition.
+// An example configuration could be:
+//
+//	{
+//		"events": {
+//			"WorkspaceActivated": {
+//				"FocusWindow": {
+//					"when": "event.ID == 3",
+//					"ID": 6
+//				}
+//			}
+//		}
+//	}
+//
+// This means that when an event "WorkspaceActivated" happens, we only run the action "FocusWindow"
+// if the workspace that was activated has an ID == 3.
+type ActionConfig struct {
+	// When contains the expression we want to evaluate.
+	//
+	// "when": "event.ID == 3" for a WorkspaceActivated event, evaluates to true if
+	// the workspace that was activated has an ID: 3.
+	When string `json:"when,omitempty"`
+	// Params contains the rest of the parameters to be defined for the action.
+	//
+	// NOTE: You don't need to set "params" in your config, but just the fields, i.e. "ID": 6 instead
+	// of "Params": {"ID": 6}.
+	Params json.RawMessage `json:"-"`
+}
+
+// UnmarshalJSON overrides the unmarshaling of an ActionConfig.
+//
+// We don't want to have the "When" field present in the rawMessage.
+func (a *ActionConfig) UnmarshalJSON(data []byte) error {
+	// Unmarshal the JSON into a map
+	var rawMap map[string]json.RawMessage
+	if err := json.Unmarshal(data, &rawMap); err != nil {
+		return err
+	}
+
+	// Extract the "when" field if it exists
+	if whenJSON, ok := rawMap["when"]; ok {
+		// Unmarshal the when value (removing quotes)
+		var whenStr string
+		if err := json.Unmarshal(whenJSON, &whenStr); err != nil {
+			return err
+		}
+		a.When = whenStr
+
+		// Remove the when field from the map
+		delete(rawMap, "when")
+	}
+
+	// Marshal the map without the when field back to JSON
+	cleanJSON, err := json.Marshal(rawMap)
+	if err != nil {
+		return err
+	}
+
+	// Store the cleaned JSON as Params
+	a.Params = json.RawMessage(cleanJSON)
+	return nil
+}
+
 // Config contains the configuration for nirimgr.
 type Config struct {
 	// LogLevel is the log level to use. One of "DEBUG", "INFO", "WARN", "ERROR" should be used. Defaults to "INFO".
@@ -64,7 +130,7 @@ type Config struct {
 	// e.g. if you want to center the window or resize it or something.
 	ShowScratchpadActions map[string]json.RawMessage `json:"showScratchpadActions,omitempty"`
 	// Events contains the event types to listen to, and the actions to run on the specified event.
-	Events map[string]map[string]json.RawMessage `json:"events,omitempty"`
+	Events map[string]map[string]ActionConfig `json:"events,omitempty"`
 }
 
 // GetRules returns the configured rules.
@@ -172,7 +238,7 @@ type Rule struct {
 	//
 	// This is a json.RawMessage on purpose, since we need to
 	// dynamically create the action struct.
-	Actions map[string]json.RawMessage `json:"actions,omitempty"`
+	Actions map[string]ActionConfig `json:"actions,omitempty"`
 }
 
 // WindowMatches checks if the window matches the given rule.

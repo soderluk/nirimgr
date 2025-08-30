@@ -55,17 +55,25 @@ func parseLogLevel(level string) slog.Level {
 }
 
 // SetUintField is a helper function to set a uint64 field dynamically if present.
+//
+// Note that if the field already has a value, we don't want to override it.
 func SetUintField(field reflect.Value, fieldName string, val any) {
 	f := field.FieldByName(fieldName)
 	slog.Debug("SetUintField", "field", field, "fieldName", fieldName, "value", val)
 	if f.IsValid() && f.CanSet() {
 		switch f.Kind() {
 		case reflect.Uint8:
-			f.SetUint(uint64(val.(uint8)))
+			if f.Uint() == 0 {
+				f.SetUint(uint64(val.(uint8)))
+			}
 		case reflect.Uint64:
-			f.SetUint(uint64(val.(uint64)))
+			if f.Uint() == 0 {
+				f.SetUint(uint64(val.(uint64)))
+			}
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			f.SetInt(int64(val.(int64)))
+			if f.Int() == 0 {
+				f.SetInt(int64(val.(int64)))
+			}
 		}
 	}
 }
@@ -75,6 +83,8 @@ func SetStringField(field reflect.Value, fieldName string, val string) {
 	f := field.FieldByName(fieldName)
 	slog.Debug("SetStringField", "field", field, "fieldName", fieldName, "value", val)
 	if f.IsValid() && f.CanSet() && f.Kind() == reflect.String {
-		f.SetString(val)
+		if f.String() == "" {
+			f.SetString(val)
+		}
 	}
 }

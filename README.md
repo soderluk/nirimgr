@@ -17,9 +17,9 @@ to open an [issue](https://github.com/soderluk/nirimgr/issues/new).
 
 ---
 
-Q: Why not create this in Rust?
+Q: Why not write this in Rust?
 
-A: Because I need to improve my Golang knowledge, and this was a great opportunity for me to dive a bit deeper into
+A: Because I need to improve my Golang knowledge (for work), and this was a great opportunity for me to dive a bit deeper into
 the language, as well as learn a bit more on the Niri IPC and how it works.
 
 # Installation
@@ -132,7 +132,10 @@ Example configuration (see: [config.json](./examples/config.json)):
       ],
       "actions": {
         // Focus the workspace.
-        "FocusWorkspace": {},
+        "FocusWorkspace": {
+          // Only focus when the workspace name is "work"
+          "when": "model.Name == 'work'"
+        },
         // Move the workspace to the monitor on the right.
         // I.e. we always want to move our work workspace to the "main" screen, if it exists.
         "MoveWorkspaceToMonitorRight": {}
@@ -261,7 +264,11 @@ Example configuration (see: [config.json](./examples/config.json)):
     "WindowUrgencyChanged": {
       // Any actions you want to do when the event happens.
       // In this example, when a WindowUrgencyChanged event happens, we want to focus the urgent window, and unset the window urgency.
-      "FocusWindow": {},
+      "FocusWindow": {
+        // Only focus the window if the event's urgent field is true.
+        // If the window urgency is unset, we won't focus the window.
+        "when": "model.Urgent == true"
+      },
       "UnsetWindowUrgent": {}
     }
   }
@@ -272,6 +279,10 @@ Example configuration (see: [config.json](./examples/config.json)):
 - Added in v0.3.0: Scratch command: spawn-or-focus - The new scratch command supports spawning defined apps, or focusing them if they're already running.
 - Added in v0.4.0: Configuration: Add new configuration showScratchpadActions, i.e. define actions to be performed on the shown scratchpad window.
 - Added in v0.5.0: Listen on custom events and perform actions on the event target, such as window/workspace.
+- Added in v0.6.0: Conditional actions: In the custom events configuration, we can now add a "when" condition to the action, and run the action only if the condition
+  evaluates to true. This also applies for the matching actions in the rules. **NOTE**: The condition _must_ start with `model.`, i.e. `"when": "model.ID == 1"`.
+  where the `model` refers to the `Window` model when matching `"type": "window"`, `Workspace` model when matching `"type": "workspace"`,
+  or the event model when listening on custom events.
 
 The rules are the same as the `window-rule` in Niri configuration. Currently we only match the window on a given title or app-id.
 Then specify which action you want to do with the matched window. In the example above, the gnome calculator
@@ -293,6 +304,10 @@ focus the urgent window, and unset the window urgency.
 
 _NOTE_: This addition is just a simple _listen to this event and perform that action on the target_, i.e. there are no conditions that can be applied to
 the action. E.g. Only focus the window if the `WindowUrgencyChanged` sets the urgency to `true`. The focus will also happen when the urgency is set to `false`.
+
+Since v0.6.0 you can add a condition to the actions. I.e. perform the action only when the `"when"`-condition evaluates to true.
+We use the [expr-lang](https://expr-lang.org/docs/getting-started) to evaluate the expression. You can see the supported conditions [here](https://expr-lang.org/docs/language-definition).
+Note that the `model` is required when writing the condition, i.e. `"when": "model.Name == 'work'"` which refers to the matching window/workspace/event.
 
 Please feel free to open a PR if you have other thoughts what we could do with nirimgr.
 
@@ -387,10 +402,3 @@ the most notable being [niri-float-sticky](https://github.com/probeldev/niri-flo
 The goroutine handling of the event stream felt like a better approach than I had before, so thanks to the author for a great library!
 
 The `nirimgr scratch spawn-or-focus [app-id]` is heavily inspired by the discussion [here](https://github.com/YaLTeR/niri/discussions/329#discussioncomment-13378697)
-
-# Known issues
-
-**_Note_**: The below has been worked around by manually focusing the moved window.
-
-There seems to be an [issue](https://github.com/YaLTeR/niri/issues/1805) with niri that it doesn't respect the `focus true/false` when moving a window.
-And here's the [PR](https://github.com/YaLTeR/niri/pull/1820) to fix it (as of now, it hasn't been yet merged.)

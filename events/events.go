@@ -19,8 +19,6 @@ import (
 
 // Run starts listening on the event stream, and handle the events.
 //
-// Currently we only handle a few events, `WindowsChanged`, `WindowOpenedOrChanged` and `WindowClosed`.
-// If you need to handle more events, add them in the switch statement.
 // Initially the thought was to support the "Dynamic open-float script, for Bitwarden and other windows that set title/app-id late":
 // https://github.com/YaLTeR/niri/discussions/1599
 // But it doesn't stop us from handling other types of events as well.
@@ -73,8 +71,8 @@ func Run() {
 			// Any events we're not specifically listening to, let's check if there are any configured events.
 			if ev != nil {
 				// Handle the event if it exists in the map
-				if acts, exists := listenToEvents[ev.GetName()]; exists {
-					for actionName, actionConfig := range acts {
+				if actionConfigs, exists := listenToEvents[ev.GetName()]; exists {
+					for actionName, actionConfig := range actionConfigs {
 						rawAction := map[string]json.RawMessage{
 							actionName: actionConfig.Params,
 						}
@@ -89,7 +87,11 @@ func Run() {
 								a = actions.HandleDynamicIDs(a, possibleKeys)
 								connection.PerformAction(a)
 							} else {
-								slog.Debug("Not doing action", slog.String("name", actionName), slog.Bool("EvaluateCondition", evaluationResult))
+								slog.Debug(
+									"Not performing action",
+									slog.String("name", actionName),
+									slog.Bool("EvaluateCondition", evaluationResult),
+								)
 							}
 						}
 					}
@@ -166,7 +168,7 @@ func matchWindowAndPerformActions(window *models.Window, existingWindows map[uin
 
 	matchedBefore := window.Matched
 	window.Matched = false
-	var rawActions map[string]json.RawMessage
+	var actionConfigs map[string]models.ActionConfig
 	for _, r := range config.Config.GetRules() {
 		if r.Type != "window" && r.Type != "" {
 			continue
@@ -174,19 +176,32 @@ func matchWindowAndPerformActions(window *models.Window, existingWindows map[uin
 		if r.WindowMatches(*window) {
 			window.Matched = true
 			if len(r.Actions) > 0 {
-				rawActions = r.Actions
+				actionConfigs = r.Actions
 			}
 			break
 		}
 	}
 	if window.Matched && !matchedBefore {
-		for _, a := range ActionsFromRaw(rawActions) {
-			// Set the action IDs dynamically here.
-			a = actions.HandleDynamicIDs(a, models.PossibleKeys{
-				ID:       window.ID,
-				WindowID: window.ID,
-			})
-			connection.PerformAction(a)
+		for actionName, actionConfig := range actionConfigs {
+			rawAction := map[string]json.RawMessage{
+				actionName: actionConfig.Params,
+			}
+			for _, a := range ActionsFromRaw(rawAction) {
+				// If we have a condition defined, evaluate it, and perform the action if it evaluates to true.
+				evaluationResult, err := EvaluateCondition(actionConfig.When, window)
+				if err != nil {
+					slog.Error("Error in EvaluateCondition", slog.Any("error", err))
+				}
+				if evaluationResult {
+					a = actions.HandleDynamicIDs(a, models.PossibleKeys{
+						ID:       window.ID,
+						WindowID: window.ID,
+					})
+					connection.PerformAction(a)
+				} else {
+					slog.Debug("Not doing action", slog.String("name", actionName), slog.Bool("EvaluateCondition", evaluationResult))
+				}
+			}
 		}
 	}
 }
@@ -202,7 +217,7 @@ func matchWorkspaceAndPerformActions(workspace *models.Workspace, existingWorksp
 	matchedBefore := workspace.Matched
 
 	workspace.Matched = false
-	var rawActions map[string]json.RawMessage
+	var actionConfigs map[string]models.ActionConfig
 	for _, r := range config.Config.GetRules() {
 		if r.Type != "workspace" {
 			continue
@@ -210,27 +225,41 @@ func matchWorkspaceAndPerformActions(workspace *models.Workspace, existingWorksp
 		if r.WorkspaceMatches(*workspace) {
 			workspace.Matched = true
 			if len(r.Actions) > 0 {
-				rawActions = r.Actions
+				actionConfigs = r.Actions
 			}
 			break
 		}
 	}
 	if workspace.Matched && !matchedBefore {
-		for _, a := range ActionsFromRaw(rawActions) {
-			// Set the Action IDs dynamically here.
-			// Note that for the reference, only one is actually applied, in the order:
-			// ID, Index, Name.
-			// The IDs are only set if the action has the field.
-			a = actions.HandleDynamicIDs(a, models.PossibleKeys{
-				ID:             workspace.ID,
-				ActiveWindowID: workspace.ActiveWindowID,
-				Reference: models.ReferenceKeys{
-					ID:    workspace.ID,
-					Index: workspace.Idx,
-					Name:  workspace.Name,
-				},
-			})
-			connection.PerformAction(a)
+		for actionName, actionConfig := range actionConfigs {
+			rawAction := map[string]json.RawMessage{
+				actionName: actionConfig.Params,
+			}
+			for _, a := range ActionsFromRaw(rawAction) {
+				// If we have a condition defined, evaluate it, and perform the action if it evaluates to true.
+				evaluationResult, err := EvaluateCondition(actionConfig.When, workspace)
+				if err != nil {
+					slog.Error("Error in EvaluateCondition", slog.Any("error", err))
+				}
+				if evaluationResult {
+					a = actions.HandleDynamicIDs(a, models.PossibleKeys{
+						ID:             workspace.ID,
+						ActiveWindowID: workspace.ActiveWindowID,
+						Reference: models.ReferenceKeys{
+							ID:    workspace.ID,
+							Index: workspace.Idx,
+							Name:  workspace.Name,
+						},
+					})
+					connection.PerformAction(a)
+				} else {
+					slog.Debug(
+						"Not performing action",
+						slog.String("name", actionName),
+						slog.Bool("EvaluateCondition", evaluationResult),
+					)
+				}
+			}
 		}
 	}
 }
@@ -255,11 +284,12 @@ func FromRegistry(name string, data []byte) Event {
 	return event
 }
 
-// EvaluateCondition evaluates the given condition on the given event.
+// EvaluateCondition evaluates the given condition on the given model.
 //
-// If the event is a "WindowUrgencyChanged" event, we know that it has a field called Urgent, so
-// the condition could be "event.Urgent == true" to run an action only when the event urgency is set.
-func EvaluateCondition(condition string, event Event) (bool, error) {
+// If the model is a "WindowUrgencyChanged" event, we know that it has a field called Urgent, so
+// the condition could be "model.Urgent == true" to run an action only when the event urgency is set.
+// Note: The model can be an event, action, window, workspace or any other model.
+func EvaluateCondition(condition string, model any) (bool, error) {
 	slog.Debug("EvaluateCondition", slog.String("condition", condition))
 	// We always evaluate empty conditions to true.
 	if condition == "" {
@@ -267,9 +297,9 @@ func EvaluateCondition(condition string, event Event) (bool, error) {
 	}
 
 	env := map[string]any{
-		"event": event,
+		"model": model,
 	}
-	slog.Debug("EvaluateCondition", slog.Any("event", event))
+	slog.Debug("EvaluateCondition", slog.Any("model", model))
 	program, err := expr.Compile(condition, expr.Env(env))
 	if err != nil {
 		return false, fmt.Errorf("invalid condition '%s': %w", condition, err)

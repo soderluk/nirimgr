@@ -238,7 +238,7 @@ type Rule struct {
 	//
 	// This is a json.RawMessage on purpose, since we need to
 	// dynamically create the action struct.
-	Actions map[string]json.RawMessage `json:"actions,omitempty"`
+	Actions map[string]ActionConfig `json:"actions,omitempty"`
 }
 
 // WindowMatches checks if the window matches the given rule.

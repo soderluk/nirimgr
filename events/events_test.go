@@ -119,14 +119,14 @@ func TestUpdateWorkspaceMatched_MatchAndAction(t *testing.T) {
 func TestEvaluateCondition(t *testing.T) {
 	t.Run("pass", func(t *testing.T) {
 		event := WindowClosed{EName: EName{"WindowClosed"}, ID: 1}
-		got, _ := EvaluateCondition("event.ID == 1", event)
+		got, _ := EvaluateCondition("model.ID == 1", event)
 		be.True(t, got)
-		got, _ = EvaluateCondition("event.ID == 2", event)
+		got, _ = EvaluateCondition("model.ID == 2", event)
 		be.True(t, !got)
 	})
 	t.Run("with error", func(t *testing.T) {
 		event := WindowFocusChanged{EName: EName{"WindowFocusChanged"}, ID: 2}
-		_, err := EvaluateCondition("event.Urgent == true", event)
+		_, err := EvaluateCondition("model.Urgent == true", event)
 		be.Err(t, err)
 	})
 }

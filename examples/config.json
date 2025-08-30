@@ -10,7 +10,9 @@
                 }
             ],
             "actions": {
-                "FocusWorkspace": {},
+                "FocusWorkspace": {
+                    "when": "model.Name == 'chat'"
+                },
                 "MoveWorkspaceToMonitor": {
                     "output": "eDP-1"
                 }
@@ -125,10 +127,10 @@
     "events": {
         "WindowUrgencyChanged": {
             "FocusWindow": {
-                "when": "event.Urgent == true"
+                "when": "model.Urgent == true"
             },
             "UnsetWindowUrgent": {
-                "when": "event.Urgent == true"
+                "when": "model.Urgent == true"
             }
         }
     }

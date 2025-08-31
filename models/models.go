@@ -1,4 +1,6 @@
 // Package models contains all the necessary models for different niri objects.
+//
+// Most of these models are defined in https://docs.rs/niri-ipc/latest/niri_ipc/index.html#structs
 package models
 
 import (
@@ -56,7 +58,7 @@ const (
 //		"events": {
 //			"WorkspaceActivated": {
 //				"FocusWindow": {
-//					"when": "event.ID == 3",
+//					"when": "model.ID == 3",
 //					"ID": 6
 //				}
 //			}
@@ -68,7 +70,7 @@ const (
 type ActionConfig struct {
 	// When contains the expression we want to evaluate.
 	//
-	// "when": "event.ID == 3" for a WorkspaceActivated event, evaluates to true if
+	// "when": "model.ID == 3" for a WorkspaceActivated event, evaluates to true if
 	// the workspace that was activated has an ID: 3.
 	When string `json:"when,omitempty"`
 	// Params contains the rest of the parameters to be defined for the action.

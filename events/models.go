@@ -191,3 +191,15 @@ type OverviewOpenedOrClosed struct {
 	// IsOpen contains the new state of the overview.
 	IsOpen bool `json:"is_open"`
 }
+
+// ConfigLoaded when the configuration was reloaded
+//
+// This will always be received when connecting to the event stream,
+// indicating the last config load attempt
+type ConfigLoaded struct {
+	// Failed indicates that the configuration couldn't be reloaded.
+	//
+	// This can happen e.g. when the config validation
+	// fails.
+	Failed bool `json:"failed"`
+}

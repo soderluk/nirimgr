@@ -186,6 +186,25 @@ func ListWorkspaces() ([]*models.Workspace, error) {
 	return workspaces, nil
 }
 
+// ListOutputs returns the current list of outputs from Niri IPC.
+func ListOutputs() ([]*models.Output, error) {
+	response, err := PerformRequest(models.Outputs)
+	if err != nil {
+		return nil, err
+	}
+	resp := <-response
+
+	var outputMap map[string]*models.Output
+	if err := json.Unmarshal(resp.Ok["Outputs"], &outputMap); err != nil {
+		return nil, err
+	}
+	var outputs []*models.Output
+	for _, output := range outputMap {
+		outputs = append(outputs, output)
+	}
+	return outputs, nil
+}
+
 // structToMap converts a go struct to a map.
 func structToMap(a any) (map[string]any, error) {
 	var m map[string]any

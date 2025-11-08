@@ -18,6 +18,7 @@ package actions
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"reflect"
 
@@ -96,6 +97,17 @@ func ParseRawActions(rawActions map[string]json.RawMessage) []Action {
 		actionList = append(actionList, action)
 	}
 	return actionList
+}
+
+// FromName returns the named action and if data is passed, uses that to populate the model.
+func FromName(name string, data map[string]any) (Action, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, errors.New("error parsing action json data")
+	}
+	action := FromRegistry(name, jsonData)
+
+	return action, nil
 }
 
 // ActionRegistry contains all the actions Niri currently sends.

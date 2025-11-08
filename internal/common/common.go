@@ -2,8 +2,11 @@
 package common
 
 import (
+	"bytes"
+	"fmt"
 	"log/slog"
 	"os"
+	"os/exec"
 	"reflect"
 
 	"github.com/soderluk/nirimgr/config"
@@ -140,4 +143,20 @@ func FilterOutputs(outputs []*models.Output, f func(*models.Output) bool) []*mod
 // FilterOutputsChain is a chainable function, you can use .First() to get the first output in the slice.
 func FilterOutputsChain(outputs []*models.Output, f func(*models.Output) bool) models.OutputSlice {
 	return models.OutputSlice{Outputs: FilterOutputs(outputs, f)}
+}
+
+// RunCommand runs the given command with sh and returns the result in bytes.
+func RunCommand(command string) ([]byte, error) {
+	cmd := exec.Command("sh", "-c", command)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", err, stderr.String())
+	}
+
+	return stdout.Bytes(), nil
 }

@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/soderluk/nirimgr/config"
+	"github.com/soderluk/nirimgr/models"
 )
 
 // SetupLogger sets up the logging for the application.
@@ -87,4 +88,56 @@ func SetStringField(field reflect.Value, fieldName string, val string) {
 			f.SetString(val)
 		}
 	}
+}
+
+// FilterWindows returns a slice of window models depending on the filtering function.
+func FilterWindows(windows []*models.Window, f func(*models.Window) bool) []*models.Window {
+	w := make([]*models.Window, 0)
+	for _, e := range windows {
+		if f(e) {
+			w = append(w, e)
+		}
+	}
+
+	return w
+}
+
+// FilterWindowsChain is a chainable function, you can use .First() to get the first window in the slice.
+func FilterWindowsChain(windows []*models.Window, f func(*models.Window) bool) models.WindowSlice {
+	return models.WindowSlice{Windows: FilterWindows(windows, f)}
+}
+
+// FilterWorkspaces returns a slice of workspace models depending on the filtering function.
+func FilterWorkspaces(workspaces []*models.Workspace, f func(*models.Workspace) bool) []*models.Workspace {
+	w := make([]*models.Workspace, 0)
+	for _, e := range workspaces {
+		if f(e) {
+			w = append(w, e)
+		}
+	}
+
+	return w
+}
+
+// FilterWorkspacesChain is a chainable function, you can use .First() to get the first workspace in the slice.
+func FilterWorkspacesChain(workspaces []*models.Workspace, f func(*models.Workspace) bool) models.WorkspaceSlice {
+	return models.WorkspaceSlice{Workspaces: FilterWorkspaces(workspaces, f)}
+}
+
+// FilterOutputs returns a slice of output models depending on the filtering function.
+func FilterOutputs(outputs []*models.Output, f func(*models.Output) bool) []*models.Output {
+	o := make([]*models.Output, 0)
+
+	for _, e := range outputs {
+		if f(e) {
+			o = append(o, e)
+		}
+	}
+
+	return o
+}
+
+// FilterOutputsChain is a chainable function, you can use .First() to get the first output in the slice.
+func FilterOutputsChain(outputs []*models.Output, f func(*models.Output) bool) models.OutputSlice {
+	return models.OutputSlice{Outputs: FilterOutputs(outputs, f)}
 }

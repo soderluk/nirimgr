@@ -5,6 +5,7 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"regexp"
@@ -351,7 +352,7 @@ type LogicalOutput struct {
 	// Scale is the scale factor.
 	Scale float64 `json:"scale"`
 	// Transform sets the transformation of the output.
-	Transform Transform `json:"transform"`
+	Transform string `json:"transform"`
 }
 
 // Mode is the output mode.
@@ -441,10 +442,39 @@ type Window struct {
 	IsFloating bool `json:"is_floating"`
 	// IsUrgent tells whether this window requests your attention.
 	IsUrgent bool `json:"is_urgent"`
+	// Layout shows position- and size-related properties of the window.
+	Layout WindowLayout `json:"layout"`
 	// Matched tells if the window matches a rule defined by nirimgr rules.
 	//
 	// This is not a part of the Niri Window model.
 	Matched bool
+}
+
+// WindowLayout shows the position- and size-related properties of a Window.
+type WindowLayout struct {
+	// PosInScrollingLayout is the location of a tiled window within a workspace:
+	// (column index, tile index in column).
+	//
+	// The indices are 1-based, i.e. the leftmost column is at index 1 and the topmost tile in a column is at index 1.
+	// This is consistent with Action::FocusColumn and Action::FocusWindowInColumn.
+	PosInScrollingLayout []uint `json:"pos_in_scrolling_layout,omitempty"`
+	// TileSize is the size of the tile this window is in, including decorations like borders.
+	TileSize []float64 `json:"tile_size"`
+	// WindowSize is the size of the window's visual geometry itself.
+	//
+	// Does not include niri decorations like borders.
+	// Currently, Wayland top-level windows can only be integer-sized in logical pixels,
+	// even though it doesn't necessarily align to physical pixels.
+	WindowSize []int32 `json:"window_size"`
+	// TilePosInWorkspaceView is the tile position within the current view of the workspace.
+	//
+	// This is the same "workspace view" as in gradients' relative-to in the niri config.
+	TilePosInWorkspaceView []float64 `json:"tile_pos_in_workspace_view,omitempty"`
+	// WindowOffsetInTile is the location of the window's visual geometry within its tile.
+	//
+	// This includes things like border sizes. For full-screened fixed-size windows this includes
+	// the distance from the corner of the black backdrop to the corner of the (centered) window contents.
+	WindowOffsetInTile []float64 `json:"window_offset_in_tile"`
 }
 
 // Workspace is the workspace.
@@ -506,4 +536,43 @@ type PossibleKeys struct {
 	WorkspaceID    uint64
 	Index          uint8
 	Reference      ReferenceKeys
+}
+
+// WindowSlice is a wrapper for windows.
+type WindowSlice struct {
+	Windows []*Window
+}
+
+// First returns the first window in the window slice.
+func (ws WindowSlice) First() (*Window, error) {
+	if len(ws.Windows) == 0 {
+		return nil, errors.New("no windows matched given filter")
+	}
+	return ws.Windows[0], nil
+}
+
+// WorkspaceSlice is a wrapper for workspaces.
+type WorkspaceSlice struct {
+	Workspaces []*Workspace
+}
+
+// First returns the first workspace in the workspace slice.
+func (ws WorkspaceSlice) First() (*Workspace, error) {
+	if len(ws.Workspaces) == 0 {
+		return nil, errors.New("no workspaces matched given filter")
+	}
+	return ws.Workspaces[0], nil
+}
+
+// OutputSlice is a wrapper for outputs.
+type OutputSlice struct {
+	Outputs []*Output
+}
+
+// First returns the first output in the output slice.
+func (o OutputSlice) First() (*Output, error) {
+	if len(o.Outputs) == 0 {
+		return nil, errors.New("no outputs matched given filter")
+	}
+	return o.Outputs[0], nil
 }

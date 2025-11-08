@@ -22,7 +22,7 @@ Q: Why not write this in Rust?
 A: Because I need to improve my Golang knowledge (for work), and this was a great opportunity for me to dive a bit deeper into
 the language, as well as learn a bit more on the Niri IPC and how it works.
 
-# Installation
+## Installation
 
 ## Using go install
 
@@ -45,8 +45,8 @@ nirimgr_x.x.x_linux_amd64.tar.gz: OK
 After verification succeeds, extract the tarball somewhere, e.g. `~/Downloads/nirimgr`.
 
 ```bash
-$ mkdir -p ~/Downloads/nirimgr
-$ tar xf nirimgr_x.x.x_linux_amd64.tar.gz --directory=~/Downloads/nirimgr/
+mkdir -p ~/Downloads/nirimgr
+tar xf nirimgr_x.x.x_linux_amd64.tar.gz --directory=~/Downloads/nirimgr/
 ```
 
 The tarball includes the following files:
@@ -82,7 +82,7 @@ $ nirimgr --version
 nirimgr version vx.x.x (commit: aaaaaaa, built at: 2025-07-25T06:05:16Z)
 ```
 
-# Configuration
+## Configuration
 
 The configuration file for nirimgr should be put in ~/.config/nirimgr/config.json
 
@@ -283,6 +283,7 @@ Example configuration (see: [config.json](./examples/config.json)):
   evaluates to true. This also applies for the matching actions in the rules. **NOTE**: The condition _must_ start with `model.`, i.e. `"when": "model.ID == 1"`.
   where the `model` refers to the `Window` model when matching `"type": "window"`, `Workspace` model when matching `"type": "workspace"`,
   or the event model when listening on custom events.
+- Added in v0.7.0: Command to move a floating window to the edges of the screen `nirimgr floating move top 10`
 
 The rules are the same as the `window-rule` in Niri configuration. Currently we only match the window on a given title or app-id.
 Then specify which action you want to do with the matched window. In the example above, the gnome calculator
@@ -309,9 +310,31 @@ Since v0.6.0 you can add a condition to the actions. I.e. perform the action onl
 We use the [expr-lang](https://expr-lang.org/docs/getting-started) to evaluate the expression. You can see the supported conditions [here](https://expr-lang.org/docs/language-definition).
 Note that the `model` is required when writing the condition, i.e. `"when": "model.Name == 'work'"` which refers to the matching window/workspace/event.
 
+Since v0.7.0 you can bind the `floating move` command in niri config:
+
+```kdl
+    Mod+Ctrl+H {
+        spawn-sh "nirimgr floating move left || niri msg action move-column-left-or-to-monitor-left"
+    }
+    Mod+Ctrl+J {
+        spawn-sh "nirimgr floating move down 4 || niri msg action move-window-down-or-to-workspace-down"
+    }
+    Mod+Ctrl+K {
+        spawn-sh "nirimgr floating move up || niri msg action move-window-up-or-to-workspace-up"
+    }
+    Mod+Ctrl+L {
+        spawn-sh "nirimgr floating move right 4 || niri msg action move-column-right-or-to-monitor-right"
+    }
+```
+
+This will move an open active floating window to the top/bottom/left/right edges of the screen, adding
+an X amount of pixels as an empty "border". The default border is 1 if none is given. NOTE: a border of
+0 will not work, 1 is the minimum. Thanks to @arnaudmathias for sharing this piece of script
+[here](https://github.com/YaLTeR/niri/discussions/1656#discussioncomment-14268880).
+
 Please feel free to open a PR if you have other thoughts what we could do with nirimgr.
 
-# Usage
+## Usage
 
 To use nirimgr, it provides the following CLI-commands:
 
@@ -322,6 +345,7 @@ To use nirimgr, it provides the following CLI-commands:
   Added in v0.3.0: the spawn-or-focus command takes as parameter the app-id of the window you want to open/focus.
   See the configuration `spawnOrFocus` to see how you should configure the apps.
 - `nirimgr list [actions|events]`: The list command will list all the available actions or events, so you don't need to remember them all.
+- `nirimgr floating move [up|down|left|right] [[border]]`: Moves an active floating window to the screen edges.
 
 To use the scratchpad with Niri, you need to have a named workspace `scratchpad`, or if you want to configure it,
 set the scratchpadWorkspace configuration option to something else `"scratchpadWorkspace": "scratch"`.
@@ -378,7 +402,7 @@ This will listen on the event stream, and react to the matching windows accordin
 define the `rules` in `config.json` and add the actions you want to do to the window when the
 event happens.
 
-# Justfile
+## Justfile
 
 The following actions can be performed with the `just` command:
 
@@ -392,7 +416,7 @@ The following actions can be performed with the `just` command:
 - `version`: Prints the version.
 - `vet`: Runs `go vet` on the project.
 
-# Acknowledgements
+## Acknowledgements
 
 Of course the biggest one goes to [Niri WM](https://github.com/YaLTeR/niri) and YaLTeR for an awesome manager!
 
@@ -402,3 +426,5 @@ the most notable being [niri-float-sticky](https://github.com/probeldev/niri-flo
 The goroutine handling of the event stream felt like a better approach than I had before, so thanks to the author for a great library!
 
 The `nirimgr scratch spawn-or-focus [app-id]` is heavily inspired by the discussion [here](https://github.com/YaLTeR/niri/discussions/329#discussioncomment-13378697)
+
+The `floating move` command is from this discussion [here](https://github.com/YaLTeR/niri/discussions/1656#discussioncomment-14268880).

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"errors"
 	"strconv"
 
@@ -89,6 +88,7 @@ var moveCmd = &cobra.Command{
 		}
 
 		data := map[string]any{
+			"ID": window.ID,
 			"x": map[string]float64{
 				"SetFixed": newX,
 			},
@@ -96,12 +96,7 @@ var moveCmd = &cobra.Command{
 				"SetFixed": newY,
 			},
 		}
-		jsonData, err := json.Marshal(data)
-		if err != nil {
-			return errors.New("error parsing action json data")
-		}
-		action := actions.FromRegistry("MoveFloatingWindow", jsonData)
-		action = actions.HandleDynamicIDs(action, models.PossibleKeys{ID: window.ID})
+		action, _ := actions.FromName("MoveFloatingWindow", data)
 		connection.PerformAction(action)
 		return nil
 	},

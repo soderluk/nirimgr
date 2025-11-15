@@ -43,6 +43,13 @@ type Spawn struct {
 	Command []string `json:"command"`
 }
 
+// SpawnSh spawns a command through the shell.
+type SpawnSh struct {
+	AName
+	// Command the command to run
+	Command string `json:"command"`
+}
+
 // DoScreenTransition does a screen transition.
 type DoScreenTransition struct {
 	AName
@@ -92,6 +99,15 @@ type FullscreenWindow struct {
 	AName
 	// ID the ID of the window to toggle. If omitted, uses the focused window.
 	ID uint64 `json:"id"`
+}
+
+// LoadConfigFile reloads the config file.
+//
+// Can be useful for scripts changing the config file, to avoid
+// waiting the small duration for niri's config file watcher to
+// notice the changes.
+type LoadConfigFile struct {
+	AName
 }
 
 // ToggleWindowedFullscreen toggles windowed (fake) fullscreen on a window.
@@ -613,6 +629,11 @@ type SwitchPresetColumnWidth struct {
 	AName
 }
 
+// SwitchPresetColumnWidthBack switches between preset column widths backwards.
+type SwitchPresetColumnWidthBack struct {
+	AName
+}
+
 // SwitchPresetWindowWidth switches between preset window widths.
 type SwitchPresetWindowWidth struct {
 	AName
@@ -620,10 +641,24 @@ type SwitchPresetWindowWidth struct {
 	ID uint64 `json:"id"`
 }
 
+// SwitchPresetWindowWidthBack switches between preset window widths backwards.
+type SwitchPresetWindowWidthBack struct {
+	AName
+	// ID the ID of the window whose width to switch. If omitted, uses the focused window.
+	ID uint64 `json:"id"`
+}
+
 // SwitchPresetWindowHeight switches between preset window heights.
 type SwitchPresetWindowHeight struct {
 	AName
 	// ID the ID of the window to switch the height for. If omitted, uses the focused window.
+	ID uint64 `json:"id"`
+}
+
+// SwitchPresetWindowHeightBack switches between preset window heights backwards.
+type SwitchPresetWindowHeightBack struct {
+	AName
+	// ID the ID of the window whose height to switch. If omitted, uses the focused window.
 	ID uint64 `json:"id"`
 }
 

@@ -1,6 +1,8 @@
 package events
 
 import (
+	"encoding/json"
+
 	"github.com/soderluk/nirimgr/models"
 )
 
@@ -164,6 +166,37 @@ func (w WindowUrgencyChanged) GetPossibleKeys() models.PossibleKeys {
 	}
 }
 
+// WindowLayoutChange represents the tuple for changes in the WindowLayoutsChanged event.
+type WindowLayoutChange struct {
+	// WindowID the window id in the layout change.
+	WindowID uint64
+	// Layout the layout of the window.
+	Layout models.WindowLayout
+}
+
+// UnmarshalJSON custom unmarshal method to handle tuples.
+func (w *WindowLayoutChange) UnmarshalJSON(data []byte) error {
+	var arr [2]json.RawMessage
+	if err := json.Unmarshal(data, &arr); err != nil {
+		return err
+	}
+	if err := json.Unmarshal(arr[0], &w.WindowID); err != nil {
+		return err
+	}
+	if err := json.Unmarshal(arr[1], &w.Layout); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// WindowLayoutsChanged when the layout of one or more windows has changed.
+type WindowLayoutsChanged struct {
+	EName
+	// Pairs consisting of a window id and new layout information for the window.
+	Changes []WindowLayoutChange `json:"changes"`
+}
+
 // KeyboardLayoutsChanged when the configured keyboard layouts have changed.
 type KeyboardLayoutsChanged struct {
 	EName
@@ -197,6 +230,7 @@ type OverviewOpenedOrClosed struct {
 // This will always be received when connecting to the event stream,
 // indicating the last config load attempt
 type ConfigLoaded struct {
+	EName
 	// Failed indicates that the configuration couldn't be reloaded.
 	//
 	// This can happen e.g. when the config validation

@@ -322,16 +322,18 @@ func EvaluateCondition(condition string, model any) (bool, error) {
 // The key needs to be the event name, and it should return the correct event model, and set
 // its EName embedded struct. If you know of a better way to handle this, please let me know.
 var EventRegistry = map[string]func() Event{
-	"WorkspacesChanged":            func() Event { return &WorkspacesChanged{EName: EName{Name: "WorkspacesChanged"}} },
-	"WorkspaceUrgencyChanged":      func() Event { return &WorkspaceUrgencyChanged{EName: EName{Name: "WorkspaceUrgencyChanged"}} },
-	"WorkspaceActivated":           func() Event { return &WorkspaceActivated{EName: EName{Name: "WorkspaceActivated"}} },
-	"WorkspaceActiveWindowChanged": func() Event { return &WorkspaceActiveWindowChanged{EName: EName{Name: "WorkspaceActiveWindowChanged"}} },
-	"WindowsChanged":               func() Event { return &WindowsChanged{EName: EName{Name: "WindowsChanged"}} },
-	"WindowOpenedOrChanged":        func() Event { return &WindowOpenedOrChanged{EName: EName{Name: "WindowOpenedOrChanged"}} },
+	"ConfigLoaded":                 func() Event { return &ConfigLoaded{EName: EName{Name: "ConfigLoaded"}} },
+	"KeyboardLayoutSwitched":       func() Event { return &KeyboardLayoutSwitched{EName: EName{Name: "KeyboardLayoutSwitched"}} },
+	"KeyboardLayoutsChanged":       func() Event { return &KeyboardLayoutsChanged{EName: EName{Name: "KeyboardLayoutsChanged"}} },
+	"OverviewOpenedOrClosed":       func() Event { return &OverviewOpenedOrClosed{EName: EName{Name: "OverviewOpenedOrClosed"}} },
 	"WindowClosed":                 func() Event { return &WindowClosed{EName: EName{Name: "WindowClosed"}} },
 	"WindowFocusChanged":           func() Event { return &WindowFocusChanged{EName: EName{Name: "WindowFocusChanged"}} },
+	"WindowLayoutsChanged":         func() Event { return &WindowLayoutsChanged{EName: EName{Name: "WindowLayoutsChanged"}} },
+	"WindowOpenedOrChanged":        func() Event { return &WindowOpenedOrChanged{EName: EName{Name: "WindowOpenedOrChanged"}} },
 	"WindowUrgencyChanged":         func() Event { return &WindowUrgencyChanged{EName: EName{Name: "WindowUrgencyChanged"}} },
-	"KeyboardLayoutsChanged":       func() Event { return &KeyboardLayoutsChanged{EName: EName{Name: "KeyboardLayoutsChanged"}} },
-	"KeyboardLayoutSwitched":       func() Event { return &KeyboardLayoutSwitched{EName: EName{Name: "KeyboardLayoutSwitched"}} },
-	"OverviewOpenedOrClosed":       func() Event { return &OverviewOpenedOrClosed{EName: EName{Name: "OverviewOpenedOrClosed"}} },
+	"WindowsChanged":               func() Event { return &WindowsChanged{EName: EName{Name: "WindowsChanged"}} },
+	"WorkspaceActivated":           func() Event { return &WorkspaceActivated{EName: EName{Name: "WorkspaceActivated"}} },
+	"WorkspaceActiveWindowChanged": func() Event { return &WorkspaceActiveWindowChanged{EName: EName{Name: "WorkspaceActiveWindowChanged"}} },
+	"WorkspaceUrgencyChanged":      func() Event { return &WorkspaceUrgencyChanged{EName: EName{Name: "WorkspaceUrgencyChanged"}} },
+	"WorkspacesChanged":            func() Event { return &WorkspacesChanged{EName: EName{Name: "WorkspacesChanged"}} },
 }

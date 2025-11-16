@@ -275,6 +275,8 @@ Example configuration (see: [config.json](./examples/config.json)):
 }
 ```
 
+## Changelog
+
 - Added in v0.2.0: Configuration: Rule type - The new rule type defines if the rule should apply to a window or a workspace.
 - Added in v0.3.0: Scratch command: spawn-or-focus - The new scratch command supports spawning defined apps, or focusing them if they're already running.
 - Added in v0.4.0: Configuration: Add new configuration showScratchpadActions, i.e. define actions to be performed on the shown scratchpad window.
@@ -284,6 +286,8 @@ Example configuration (see: [config.json](./examples/config.json)):
   where the `model` refers to the `Window` model when matching `"type": "window"`, `Workspace` model when matching `"type": "workspace"`,
   or the event model when listening on custom events.
 - Added in v0.7.0: Command to move a floating window to the edges of the screen `nirimgr floating move top 10`
+- Added in v0.8.0: New action and event models
+- Added in v0.9.0: Command to switch windows using fuzzel `nirimgr switch-window`.
 
 The rules are the same as the `window-rule` in Niri configuration. Currently we only match the window on a given title or app-id.
 Then specify which action you want to do with the matched window. In the example above, the gnome calculator

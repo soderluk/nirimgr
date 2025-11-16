@@ -35,5 +35,8 @@ binds {
     Mod+Ctrl+L {
         spawn-sh "nirimgr floating move right 4 || niri msg action move-column-right-or-to-monitor-right"
     }
+    Alt+Tab {
+        spawn nirimgr switch-window
+    }
 }
 

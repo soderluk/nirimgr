@@ -1,0 +1,39 @@
+---
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: "sunday"
+      time: "09:00"
+      timezone: Europe/Helsinki
+    commit-message:
+      include: scope
+      prefix: chore
+    groups:
+      go-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+      time: 09:15
+      timezone: Europe/Helsinki
+    commit-message:
+      include: scope
+      prefix: chore
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 3
+    rebase-strategy: "auto"

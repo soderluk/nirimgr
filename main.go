@@ -36,6 +36,8 @@ package main
 
 import (
 	"github.com/soderluk/nirimgr/cmd"
+	_ "github.com/soderluk/nirimgr/cmd/floating"   // Register floating window subcommands
+	_ "github.com/soderluk/nirimgr/cmd/scratchpad" // Register scratch subcommands
 	"github.com/soderluk/nirimgr/config"
 	"github.com/soderluk/nirimgr/internal/common"
 )

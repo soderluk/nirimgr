@@ -1,4 +1,4 @@
-package cmd
+package floating
 
 import (
 	"encoding/json"

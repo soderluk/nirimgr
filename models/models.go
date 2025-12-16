@@ -125,6 +125,8 @@ type Config struct {
 	//
 	// NOTE: The named workspace must be defined in niri config.
 	ScratchpadWorkspace string `json:"scratchpadWorkspace,omitempty"`
+	// Launcher is the full path to the preferred launcher to use.
+	Launcher string `json:"launcher,omitempty"`
 	// SpawnOrFocus defines the configuration for the spawn-or-focus command.
 	SpawnOrFocus SpawnOrFocus `json:"spawnOrFocus,omitempty"`
 	// ShowScratchpadActions lists actions that should be performed on the shown scratchpad window.

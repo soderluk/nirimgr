@@ -147,6 +147,7 @@ func FilterOutputsChain(outputs []*models.Output, f func(*models.Output) bool) m
 
 // RunCommand runs the given command with sh and returns the result in bytes.
 func RunCommand(command string) ([]byte, error) {
+	// TODO: Check the command, that it's not malicious.
 	cmd := exec.Command("sh", "-c", command)
 
 	var stdout, stderr bytes.Buffer

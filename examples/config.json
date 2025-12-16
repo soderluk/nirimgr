@@ -2,6 +2,7 @@
     "scratchpadWorkspace": "scratchpad",
     "logLevel": "DEBUG",
     "launcher": "/usr/bin/fuzzel",
+    "launcherOptions": "-d -w 50",
     "rules": [
         {
             "type": "workspace",

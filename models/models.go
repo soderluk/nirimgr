@@ -127,8 +127,10 @@ type Config struct {
 	ScratchpadWorkspace string `json:"scratchpadWorkspace,omitempty"`
 	// Launcher is the full path to the preferred launcher to use.
 	Launcher string `json:"launcher,omitempty"`
+	// LauncherOptions are the options to pass to the launcher.
+	LauncherOptions string `json:"launcherOptions"`
 	// SpawnOrFocus defines the configuration for the spawn-or-focus command.
-	SpawnOrFocus SpawnOrFocus `json:"spawnOrFocus,omitempty"`
+	SpawnOrFocus SpawnOrFocus `json:"spawnOrFocus"`
 	// ShowScratchpadActions lists actions that should be performed on the shown scratchpad window.
 	//
 	// The `scratch show` command will always run MoveWindowToWorkspace and FocusWindow, but in addition can perform the following actions,

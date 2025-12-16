@@ -18,7 +18,7 @@ import (
 var showCmd = &cobra.Command{
 	Use:          "show",
 	Short:        "Show a window from the scratchpad",
-	Long:         `Moves the last window from the scratchpad workspace to the currently active workspace. This requires niri to have a named workspace called "scratchpad". See README.md for more information.`,
+	Long:         `Moves the last window from the scratchpad workspace to the currently active workspace. This requires niri to have a named workspace called "scratchpad" (configurable in the config.json). See README.md for more information.`,
 	SilenceUsage: true, // If there's an error during running the command, don't show usage.
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return showScratchpad()
@@ -54,12 +54,15 @@ func showScratchpad() error {
 	var window *models.Window
 	// Return the last window in the list, if we have any.
 	if len(workspaceWindows) > 0 {
+		// If we have more than one window in the scratchpad, open a launcher to select the window.
 		if len(workspaceWindows) > 1 {
+			// Build the list of windows to pass to the launcher.
 			command := ""
 			for idx, window := range workspaceWindows {
 				command += fmt.Sprintf("%d - %s\n", idx, window.Title)
 			}
-			fullCommand := fmt.Sprintf("echo \"%s\" | sort | %s -d -w 50 | awk '{print $1}'", command, config.Config.Launcher)
+			// Build the full command to run.
+			fullCommand := fmt.Sprintf("echo \"%s\" | %s %s | awk '{print $1}'", command, config.Config.Launcher, config.Config.LauncherOptions)
 			result, err := common.RunCommand(fullCommand)
 			if err != nil {
 				slog.Error("Error running command", slog.String("command", fullCommand), slog.Any("error", err.Error()))

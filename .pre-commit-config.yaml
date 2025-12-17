@@ -3,7 +3,7 @@ default_install_hook_types:
   - commit-msg
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.2.0
+    rev: 8f2901e453e79dc8c524a8e43268721aa91931a6  # frozen: v4.3.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
@@ -81,7 +81,7 @@ repos:
   #   Consider adding aliases to longer-named hooks for easier CLI usage.
   # ==========================================================================
   - repo: https://github.com/tekwizely/pre-commit-golang
-    rev: v1.0.0-rc.1
+    rev: f298c082154b2cb239fac06a4f452368e66e66dd  # frozen: v1.0.0-rc.4
     hooks:
       #
       # Go Build

@@ -1,5 +1,5 @@
-version := `git describe --tags --always`
-commit := `git rev-parse --short HEAD`
+version := `jj log --no-graph -r @ -T 'parents.map(|c| c.tags())'`
+commit := `jj log -T 'commit_id.short() ++ "\n"' --no-graph | head -n1`
 buildDate := `date -u '+%Y-%m-%dT%H:%M:%SZ'`
 ldflags := "-s -w -X github.com/soderluk/nirimgr/config.Version=" + version + " -X github.com/soderluk/nirimgr/config.CommitSHA=" + commit + " -X github.com/soderluk/nirimgr/config.BuildDate=" + buildDate
 

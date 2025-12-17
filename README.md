@@ -94,6 +94,10 @@ Example configuration (see: [config.json](./examples/config.json)):
   "scratchpadWorkspace": "scratchpad",
   // Set the log level of the nirimgr command. Supported levels "DEBUG", "INFO", "WARN", "ERROR"
   "logLevel": "DEBUG",
+  // Configure the launcher to use. Must be full path to the launcher binary. Defaults to /usr/bin/fuzzel.
+  "launcher": "/usr/bin/fuzzel",
+  // Any launcher options to pass to the launcher. Defaults to -d -w 50 (--dmenu --width 50).
+  "launcherOptions": "-d -w 50",
   // Window and/or Workspace rules and actions to do on the matched window/workspace.
   "rules": [
     {
@@ -284,6 +288,8 @@ Example configuration (see: [config.json](./examples/config.json)):
   where the `model` refers to the `Window` model when matching `"type": "window"`, `Workspace` model when matching `"type": "workspace"`,
   or the event model when listening on custom events.
 - Added in v0.7.0: Command to move a floating window to the edges of the screen `nirimgr floating move top 10`
+- Added in v0.8.0: New models that were introduced in Niri
+- Added in v0.9.0: Use launcher to choose which window to show from the scratchpad workspace, if there are more than one window. The launcher is configurable in the config.
 
 The rules are the same as the `window-rule` in Niri configuration. Currently we only match the window on a given title or app-id.
 Then specify which action you want to do with the matched window. In the example above, the gnome calculator
@@ -311,6 +317,10 @@ We use the [expr-lang](https://expr-lang.org/docs/getting-started) to evaluate t
 Note that the `model` is required when writing the condition, i.e. `"when": "model.Name == 'work'"` which refers to the matching window/workspace/event.
 
 Since v0.7.0 you can bind the `floating move` command in niri config:
+
+Since v0.9.0 you can configure a launcher in the config.json, which will be used when you show windows from the scratchpad workspace.
+The launcher is used if there are multiple windows on the scratchpad, so the user can choose which window to bring to the
+current workspace.
 
 ```kdl
     Mod+Ctrl+H {

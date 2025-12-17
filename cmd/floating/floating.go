@@ -1,6 +1,7 @@
-package cmd
+package floating
 
 import (
+	"github.com/soderluk/nirimgr/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -11,5 +12,5 @@ var floatingCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(floatingCmd)
+	cmd.RootCmd.AddCommand(floatingCmd)
 }

@@ -145,10 +145,17 @@ func FilterOutputsChain(outputs []*models.Output, f func(*models.Output) bool) m
 	return models.OutputSlice{Outputs: FilterOutputs(outputs, f)}
 }
 
+// execCommand is a variable that points to exec.Command, allowing us to mock it in tests.
+var execCommand = exec.Command
+
 // RunCommand runs the given command with sh and returns the result in bytes.
 func RunCommand(command string) ([]byte, error) {
-	// TODO: Check the command, that it's not malicious.
-	cmd := exec.Command("sh", "-c", command)
+	// Validate the command before executing.
+	if err := validateCommand(command); err != nil {
+		return nil, err
+	}
+
+	cmd := execCommand("sh", "-c", command)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -160,4 +167,44 @@ func RunCommand(command string) ([]byte, error) {
 	}
 
 	return stdout.Bytes(), nil
+}
+
+// validateCommand checks the command for common dangerous patterns.
+func validateCommand(command string) error {
+	patterns := []string{
+		"rm -rf",
+		"rm -fr",
+		"rm / -rf",
+		"rm / -fr",
+		"> /dev/sda",
+		"dd if=",
+		"mkfs",
+		"shred",
+		":(){ :|:& };:",
+		"fork()",
+		"chmod -R 777",
+		"chown -R",
+		"sudo rm",
+		"sudo dd",
+		"sudo mkfs",
+		"> /etc/",
+		"> /boot/",
+		"> /sys/",
+		"format c:",
+		"del /f /s /q",
+	}
+
+	for _, pattern := range patterns {
+		if bytes.Contains([]byte(command), []byte(pattern)) {
+			return fmt.Errorf("potentially dangerous command detected: contains '%s'", pattern)
+		}
+	}
+
+	// Block commands that start with sudo or su for privilege escalation
+	trimmed := bytes.TrimSpace([]byte(command))
+	if bytes.HasPrefix(trimmed, []byte("sudo ")) || bytes.HasPrefix(trimmed, []byte("su ")) {
+		return fmt.Errorf("privilege escalation commands (sudo/su) are not allowed")
+	}
+
+	return nil
 }

@@ -56,13 +56,24 @@ func showScratchpad() error {
 	if len(workspaceWindows) > 0 {
 		// If we have more than one window in the scratchpad, open a launcher to select the window.
 		if len(workspaceWindows) > 1 {
+			// Default the launcher to fuzzel at /usr/bin/fuzzel.
+			launcher := "/usr/bin/fuzzel"
+			// Default to -d -w 50 (--dmenu --width 50).
+			launcherOptions := "-d -w 50"
+			// If the launcher and launcher options are configured, use those instead.
+			if config.Config.Launcher != "" {
+				launcher = config.Config.Launcher
+			}
+			if config.Config.LauncherOptions != "" {
+				launcherOptions = config.Config.LauncherOptions
+			}
 			// Build the list of windows to pass to the launcher.
 			command := ""
 			for idx, window := range workspaceWindows {
 				command += fmt.Sprintf("%d - %s\n", idx, window.Title)
 			}
 			// Build the full command to run.
-			fullCommand := fmt.Sprintf("echo \"%s\" | %s %s | awk '{print $1}'", command, config.Config.Launcher, config.Config.LauncherOptions)
+			fullCommand := fmt.Sprintf("echo \"%s\" | %s %s | awk '{print $1}'", command, launcher, launcherOptions)
 			result, err := common.RunCommand(fullCommand)
 			if err != nil {
 				slog.Error("Error running command", slog.String("command", fullCommand), slog.Any("error", err.Error()))

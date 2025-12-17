@@ -16,6 +16,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Update pre-commit hooks
         uses: brokenpip3/action-pre-commit-update@2ed66fc676db54c8e7a8203e3c54d653f3ae9208 # 0.0.3
         with:

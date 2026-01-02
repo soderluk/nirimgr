@@ -237,3 +237,41 @@ type ConfigLoaded struct {
 	// fails.
 	Failed bool `json:"failed"`
 }
+
+// ScreenshotCaptured when a screenshot was captured.
+type ScreenshotCaptured struct {
+	EName
+	// Path indicates the file path where the screenshot was saved, if it was written to disk.
+	//
+	// If None, the screenshot was wither only copied to the clipboard, or the path couldn't be
+	// converted to a String (e.g. contained invalid UTF-8 bytes).
+	Path string `json:"path,omitempty"`
+}
+
+// Timestamp is a moment in time
+type Timestamp struct {
+	// Secs is the number of whole seconds.
+	Secs uint64 `json:"secs,omitempty"`
+	// Nanos is the fractional part of the timestamp in nanoseconds.
+	Nanos uint32 `json:"nanos,omitempty"`
+}
+
+// WindowFocusTimestampChanged when the window focus timestamp changed.
+//
+// This event is separate from WindowFocusChanged because the focus timestamp only updates after some
+// debounce time so that quick window switching doesn't mark intermediate windows as recently focused.
+type WindowFocusTimestampChanged struct {
+	EName
+	// Id is the window ID.
+	ID uint64 `json:"id"`
+	// FocusTimestamp is the new focus timestamp.
+	FocusTimestamp Timestamp `json:"focus_timestamp"`
+}
+
+// GetPossibleKeys extracts the window ID from this event.
+func (w WindowFocusTimestampChanged) GetPossibleKeys() models.PossibleKeys {
+	return models.PossibleKeys{
+		ID:       w.ID,
+		WindowID: w.ID,
+	}
+}

@@ -163,6 +163,7 @@ var ActionRegistry = map[string]func() Action{
 	"FullscreenWindow":           func() Action { return &FullscreenWindow{AName: AName{Name: "FullscreenWindow"}} },
 	"LoadConfigFile":             func() Action { return &LoadConfigFile{AName: AName{Name: "LoadConfigFile"}} },
 	"MaximizeColumn":             func() Action { return &MaximizeColumn{AName: AName{Name: "MaximizeColumn"}} },
+	"MaximizeWindowToEdges":      func() Action { return &MaximizeWindowToEdges{AName: AName{Name: "MaximizeWindowToEdges"}} },
 	"MoveColumnLeft":             func() Action { return &MoveColumnLeft{AName: AName{Name: "MoveColumnLeft"}} },
 	"MoveColumnLeftOrToMonitorLeft": func() Action {
 		return &MoveColumnLeftOrToMonitorLeft{AName: AName{Name: "MoveColumnLeftOrToMonitorLeft"}}

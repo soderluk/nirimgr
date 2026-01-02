@@ -667,6 +667,14 @@ type MaximizeColumn struct {
 	AName
 }
 
+// MaximizeWindowToEdges toggles the maximized-to-edges state of the focused window.
+type MaximizeWindowToEdges struct {
+	AName
+
+	// ID of the window to maximize.
+	ID uint64 `json:"id,omitempty"`
+}
+
 // SetColumnWidth changes the width of the focused column.
 type SetColumnWidth struct {
 	AName

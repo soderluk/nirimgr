@@ -3,7 +3,7 @@ module github.com/soderluk/nirimgr
 go 1.24.6
 
 require (
-	github.com/expr-lang/expr v1.17.7
+	github.com/expr-lang/expr v1.17.8
 	github.com/olekukonko/tablewriter v1.1.3
 	github.com/spf13/cobra v1.10.2
 )

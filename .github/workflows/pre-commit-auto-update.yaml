@@ -18,6 +18,6 @@ jobs:
           persist-credentials: false
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Update pre-commit hooks
-        uses: brokenpip3/action-pre-commit-update@2ed66fc676db54c8e7a8203e3c54d653f3ae9208 # 0.0.3
+        uses: brokenpip3/action-pre-commit-update@24b7a510db4356b7cb0a2d0b8f72d1226fa7195b # 0.0.5
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

@@ -35,6 +35,7 @@ func Repr(model any) string {
 	}
 
 	t := reflect.TypeOf(model)
+	// nolint:govet
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}

@@ -106,6 +106,7 @@ func msort[T any](m map[string]T) []string {
 func extractFields(s any) map[string]any {
 	m := make(map[string]any)
 	v := reflect.ValueOf(s)
+	// nolint:govet
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}

@@ -34,6 +34,7 @@ import (
 // the necessary IDs during runtime, we want to be able to set them dynamically.
 func HandleDynamicIDs(a Action, possibleKeys models.PossibleKeys) Action {
 	value := reflect.ValueOf(a)
+	// nolint:govet
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
 	}

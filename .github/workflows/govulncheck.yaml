@@ -30,8 +30,10 @@ jobs:
       - uses: geomys/sandboxed-step@7d75eb49d17fdeeb3656b3a57d35932d205bcfb9
         with:
           run: |
+            export GODEBUG=cpu.aes=off
             if [ "${{ matrix.deps }}" == "latest" ]; then
-              go get -u -t ./...
+              go get -u ./...
+              go mod tidy
             fi
             go test -v ./...
   govulncheck:
@@ -45,4 +47,6 @@ jobs:
           go-version-file: go.mod
       - uses: geomys/sandboxed-step@7d75eb49d17fdeeb3656b3a57d35932d205bcfb9
         with:
-          run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+          run: |
+            export GODEBUG=cpu.aes=off
+            go run golang.org/x/vuln/cmd/govulncheck@latest ./...

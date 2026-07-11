@@ -23,6 +23,10 @@ var (
 	CommitSHA string = "unknown"
 	// Config contains all configurations
 	Config *models.Config
+
+	// userHomeDir is the function used to retrieve the user's home directory.
+	// It can be overridden in tests.
+	userHomeDir = os.UserHomeDir
 )
 
 // getConfigFile returns the config.json file.
@@ -36,7 +40,7 @@ func getConfigFile(filename string) (*os.File, error) {
 	}
 	f, err := os.Open("config/" + filename) // #nosec G304
 	if err != nil {
-		homeDir, homeErr := os.UserHomeDir()
+		homeDir, homeErr := userHomeDir()
 		if homeErr != nil {
 			return nil, homeErr
 		}

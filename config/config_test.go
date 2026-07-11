@@ -6,38 +6,17 @@ import (
 	"testing"
 )
 
-func createTempConfigFile(t *testing.T, content string) (string, func()) {
-	dir := t.TempDir()
-	file := filepath.Join(dir, "test_config.json")
-	err := os.WriteFile(file, []byte(content), 0o644)
-	if err != nil {
-		t.Fatalf("Failed to write temp config file: %v", err)
-	}
-	return file, func() {
-		err := os.Remove(file)
-		if err != nil {
-			t.Logf("Could not remove file %v", file)
-		}
-	}
-}
-
 func TestNewConfig_LocalFile(t *testing.T) {
 	configContent := `{"logLevel":"debug"}`
-	file, cleanup := createTempConfigFile(t, configContent)
-	defer cleanup()
 
-	// Move file to expected local path
 	if err := os.MkdirAll("config", 0o755); err != nil {
-		t.Log("could not create directory 'config'")
+		t.Fatalf("could not create directory 'config': %v", err)
 	}
-	if err := os.Rename(file, "config/test_config.json"); err != nil {
-		t.Logf("could not rename file %v", file)
+	configPath := filepath.Join("config", "test_config.json")
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+		t.Fatalf("could not write config file: %v", err)
 	}
-	defer func() {
-		if err := os.Remove("config/test_config.json"); err != nil {
-			t.Log("could not remove config file")
-		}
-	}()
+	defer os.Remove(configPath) // nolint
 
 	cfg, err := newConfig("test_config.json")
 	if err != nil {
@@ -50,23 +29,20 @@ func TestNewConfig_LocalFile(t *testing.T) {
 
 func TestNewConfig_HomeFallback(t *testing.T) {
 	configContent := `{"logLevel":"info"}`
-	file, cleanup := createTempConfigFile(t, configContent)
-	defer cleanup()
 
-	homeDir, _ := os.UserHomeDir()
-	configDir := filepath.Join(homeDir, ".config", "nirimgr")
+	tmpHome := t.TempDir()
+	oldUserHomeDir := userHomeDir
+	userHomeDir = func() (string, error) { return tmpHome, nil }
+	defer func() { userHomeDir = oldUserHomeDir }()
+
+	configDir := filepath.Join(tmpHome, ".config", "nirimgr")
 	if err := os.MkdirAll(configDir, 0o755); err != nil {
-		t.Logf("could not create directory '%v'", configDir)
+		t.Fatalf("could not create config dir: %v", err)
 	}
 	configPath := filepath.Join(configDir, "test_config.json")
-	if err := os.Rename(file, configPath); err != nil {
-		t.Logf("could not rename file '%v' to '%v'", file, configPath)
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+		t.Fatalf("could not write config file: %v", err)
 	}
-	defer func() {
-		if err := os.Remove(configPath); err != nil {
-			t.Log("could not remove config path")
-		}
-	}()
 
 	cfg, err := newConfig("test_config.json")
 	if err != nil {
@@ -79,19 +55,15 @@ func TestNewConfig_HomeFallback(t *testing.T) {
 
 func TestConfigure_SetsGlobalConfig(t *testing.T) {
 	configContent := `{"logLevel":"warn"}`
-	file, cleanup := createTempConfigFile(t, configContent)
-	defer cleanup()
+
 	if err := os.MkdirAll("config", 0o755); err != nil {
-		t.Log("could not create directory 'config'")
+		t.Fatalf("could not create directory 'config': %v", err)
 	}
-	if err := os.Rename(file, "config/test_config.json"); err != nil {
-		t.Logf("could not rename file '%v'", file)
+	configPath := filepath.Join("config", "test_config.json")
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+		t.Fatalf("could not write config file: %v", err)
 	}
-	defer func() {
-		if err := os.Remove("config/test_config.json"); err != nil {
-			t.Log("could not remove test config file")
-		}
-	}()
+	defer os.Remove(configPath) // nolint
 
 	err := Configure("test_config.json")
 	if err != nil {
@@ -103,10 +75,14 @@ func TestConfigure_SetsGlobalConfig(t *testing.T) {
 }
 
 func TestGetConfigFile_Error(t *testing.T) {
-	err := os.Remove("config/test_config.json")
-	if err != nil {
-		t.Log("could not remove test config.")
-	}
+	tmpHome := t.TempDir()
+	oldUserHomeDir := userHomeDir
+	userHomeDir = func() (string, error) { return tmpHome, nil }
+	defer func() { userHomeDir = oldUserHomeDir }()
+
+	// Ensure no local config file exists
+	os.Remove(filepath.Join("config", "test_config.json")) // nolint
+
 	cfg, err := getConfigFile("test_config.json")
 	if err == nil || cfg != nil {
 		t.Error("Expected error when config files are missing")

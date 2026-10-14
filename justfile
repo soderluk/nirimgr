@@ -27,5 +27,8 @@ test:
 run RUNARGS:
     @go run -ldflags "{{ ldflags }}" ./main.go {{ RUNARGS }}
 
+update:
+    go get -u=patch ./... 
+
 coverage:
     @go tool cover -html=cover.out

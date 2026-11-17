@@ -1,6 +1,6 @@
 module github.com/soderluk/nirimgr
 
-go 1.26.9
+go 1.26.11
 
 require (
 	github.com/expr-lang/expr v1.17.8
